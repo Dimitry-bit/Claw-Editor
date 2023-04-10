@@ -11,9 +11,12 @@ enum keystatus_t {
 
 static std::map<sf::Keyboard::Key, keystatus_t> keyMap;
 static std::map<sf::Mouse::Button, keystatus_t> mouseKeyMap;
+sf::Event::MouseWheelScrollEvent scrollEvent;
 
 void SetKeyStatus(sf::Keyboard::Key key, keystatus_t status);
 void SetMouseKeyStatus(sf::Mouse::Button key, keystatus_t status);
+
+bool isMouseWheelScrolled = false;
 
 void InputEvent(sf::Event event)
 {
@@ -29,6 +32,11 @@ void InputEvent(sf::Event event)
             break;
         case sf::Event::MouseButtonReleased: {
             SetMouseKeyStatus(event.mouseButton.button, KEY_RELEASED);
+        }
+            break;
+        case sf::Event::MouseWheelScrolled: {
+            scrollEvent = event.mouseWheelScroll;
+            isMouseWheelScrolled = true;
         }
             break;
         case sf::Event::KeyReleased:
@@ -48,6 +56,8 @@ void ClearKeyStatus()
     for (auto& key: mouseKeyMap) {
         key.second = KEY_OFF;
     }
+
+    isMouseWheelScrolled = false;
 }
 
 void SetKeyStatus(sf::Keyboard::Key key, keystatus_t status)
@@ -78,4 +88,14 @@ bool isMousePressed(sf::Mouse::Button key)
 bool isMouseReleased(sf::Mouse::Button key)
 {
     return (mouseKeyMap[key] == KEY_RELEASED);
+}
+
+sf::Event::MouseWheelScrollEvent GetMouseWheelScroll()
+{
+    return scrollEvent;
+}
+
+bool IsMouseWheelScrolled()
+{
+    return isMouseWheelScrolled;
 }

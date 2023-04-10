@@ -8,4 +8,6 @@ void ClearKeyStatus();
 bool isKeyPressed(sf::Keyboard::Key key);
 bool isKeyReleased(sf::Keyboard::Key key);
 bool isMousePressed(sf::Mouse::Button key);
-bool isMouseReleased(sf::Mouse::Button key);
+bool isMouseReleased(sf::Mouse::Button key);;
+bool IsMouseWheelScrolled();
+sf::Event::MouseWheelScrollEvent GetMouseWheelScroll();
