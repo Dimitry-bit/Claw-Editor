@@ -6,6 +6,7 @@
 #include "renderer.h"
 #include "editor.h"
 #include "resource_manager.h"
+#include "scene_navigation.h"
 
 sf::RenderWindow* rWindow;
 
@@ -20,25 +21,13 @@ int main()
     ResTextureLoadFromSpriteSheet(*ResSpriteSheetGet("tilesets/LEVEL1_TILES.png"));
 
     EditorInit();
-
     RendererInit();
-    sf::Vector2i oldPos;
-    sf::Vector2i currentPos;
+    SceneNavigationInit();
 
     sf::Clock deltaClock;
     while (window.isOpen()) {
         HandleEvent();
-
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-            currentPos = sf::Mouse::getPosition(*rWindow);
-            sf::Vector2f pos = window.mapPixelToCoords(sf::Vector2i(oldPos.x - currentPos.x, oldPos.y - currentPos.y));
-            view.move(pos.x, pos.y);
-            window.setView(view);
-            oldPos = currentPos;
-        } else {
-            oldPos = sf::Mouse::getPosition(*rWindow);
-        }
-
+        SceneNavigationUpdate();
         RenderWindow(deltaClock.restart());
         ClearKeyStatus();
     }
