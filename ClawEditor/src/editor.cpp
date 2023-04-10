@@ -13,8 +13,10 @@
 
 const int characterSize = 14;
 const float boundaryOffsetX = 20.0f;
-const float boundaryOffsetY = 20.0f;
+const float boundaryOffsetY = 50.0f;
 const sf::Color textColor = sf::Color::White;
+
+void DrawMainMenuBar();
 
 void EditorInit()
 {
@@ -57,11 +59,88 @@ void EditorEvent(sf::Event event)
 void EditorTick(sf::Time deltaTime)
 {
     ImGui::SFML::Update(*rWindow, deltaTime);
+    DrawMainMenuBar();
     DrawMouseCoordinates();
     DrawFrameTime(deltaTime.asSeconds());
-    DrawTextureSelector();
+    DrawTilePainter();
 
     ImGui::SFML::Render(*rWindow);
+}
+
+void DrawMainMenuBar()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 5.0f));
+    ImGui::BeginMainMenuBar();
+    if (ImGui::BeginMenu(ICON_MD_INSERT_DRIVE_FILE "File")) {
+        if (ImGui::MenuItem(ICON_MD_INSERT_DRIVE_FILE "New document")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_FILE_OPEN "Open")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_SAVE "Save")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_SAVE_AS "Save As")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
+
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu(ICON_MD_EDIT "Edit")) {
+        if (ImGui::MenuItem(ICON_MD_DATA_OBJECT "Object Properties")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_TERRAIN "Tile Properties")) {
+
+        }
+
+        ImGui::EndMenu();
+    }
+
+//    if (ImGui::BeginMenu(ICON_MD_VIEW_IN_AR "Planes")) {
+//
+//        ImGui::EndMenu();
+//    }
+
+    if (ImGui::BeginMenu(ICON_MD_VISIBILITY "View")) {
+        if (ImGui::MenuItem(ICON_MD_GRID_3X3 "Show Guides")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties")) {
+
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu(ICON_MD_HANDYMAN "Tools")) {
+        if (ImGui::MenuItem(ICON_MD_TERRAIN "Tiles")) {
+
+        }
+        if (ImGui::MenuItem(ICON_MD_COLLECTIONS "Image Sets")) {
+
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu(ICON_MD_HELP "Help")) {
+        if (ImGui::MenuItem("Version")) {
+
+        }
+        if (ImGui::MenuItem("About")) {
+
+        }
+
+        ImGui::EndMenu();
+    }
+    ImGui::PopStyleVar();
+    ImGui::EndMainMenuBar();
 }
 
 void DrawOnScreenSpriteData(const sf::Sprite& drawable)
@@ -130,9 +209,9 @@ void DrawFrameTime(float deltaTime)
     rWindow->draw(text);
 }
 
-void DrawTextureSelector()
+void DrawTilePainter()
 {
-    if (!ImGui::Begin(ICON_MD_VIEW_IN_AR "TileSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (!ImGui::Begin(ICON_MD_BRUSH "Tile Painter", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
     }

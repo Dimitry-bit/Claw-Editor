@@ -10,4 +10,4 @@ void EditorTick(sf::Time deltaTime);
 void DrawMouseCoordinates();
 void DrawFrameTime(float deltaTime);
 void DrawOnScreenSpriteData(const sf::Sprite& drawable);
-void DrawTextureSelector();
+void DrawTilePainter();
