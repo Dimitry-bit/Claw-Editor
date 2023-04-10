@@ -16,12 +16,6 @@ int main()
     sf::RenderWindow window(sf::VideoMode(windowSizeX, windowSizeY), "Claw Editor");
     rWindow = &window;
 
-//    if (ResTextureLoadFromFile("characters/CLAW_RUN.png")) {
-//        sf::Texture tex = ResTextureGet("characters/CLAW_RUN.png");
-//        sf::Sprite s;
-
-    }
-
     ResSpriteSheetLoadFromFile("tilesets/LEVEL1_TILES.png");
     ResTextureLoadFromSpriteSheet(*ResSpriteSheetGet("tilesets/LEVEL1_TILES.png"));
 
