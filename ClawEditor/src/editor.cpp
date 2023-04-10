@@ -1,37 +1,42 @@
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include "imgui.h"
 #include "imgui-SFML.h"
 #include "fonts/IconsMaterialDesign.h"
 #include "SFML/Graphics.hpp"
 
 #include "editor.h"
+#include "editor_constants.h"
+#include "editor_tile_painter.h"
+#include "editor_debug.h"
+#include "input.h"
 #include "renderer.h"
 #include "resource_manager.h"
 
-#define BASE_FONT_FILE_NAME "JetBrainsMono-Regular.ttf"
+static std::map<string, std::vector<editorwindow_t>> editorsMap;
 
-const int characterSize = 14;
-const float boundaryOffsetX = 20.0f;
-const float boundaryOffsetY = 50.0f;
-const sf::Color textColor = sf::Color::White;
-
+void EditorInitFont();
 void DrawMainMenuBar();
 
 void EditorInit()
 {
     ImGui::SFML::Init(*rWindow);
+    EditorInitFont();
+
+    EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
+}
+
+void EditorInitFont()
+{
     ResFontLoadFromFile(BASE_FONT_FILE_NAME);
 
     ImGuiIO& io = ImGui::GetIO();
-
-    float baseFontSize = 18.0f;
     ImFontConfig fontConfig;
     fontConfig.MergeMode = true;
     fontConfig.PixelSnapH = true;
     io.Fonts->AddFontFromFileTTF("../resources/fonts/" BASE_FONT_FILE_NAME, baseFontSize, &fontConfig);
 
-    float iconFontSize = 18.0f;
     static const ImWchar iconsRanges[] = {ICON_MIN_MD, ICON_MAX_16_MD, 0};
     ImFontConfig iconsConfig;
     iconsConfig.MergeMode = true;
@@ -54,6 +59,20 @@ void EditorShutdown()
 void EditorEvent(sf::Event event)
 {
     ImGui::SFML::ProcessEvent(event);
+
+    if (event.type != sf::Event::KeyPressed) {
+        return;
+    }
+
+    for (auto& tabEditors: editorsMap) {
+        for (auto& eWindow: tabEditors.second) {
+            if (isKeyPressed(eWindow.shortcutKey)) {
+                eWindow.isOpen = !eWindow.isOpen;
+                return;
+            }
+        }
+    }
+
 }
 
 void EditorTick(sf::Time deltaTime)
@@ -62,9 +81,49 @@ void EditorTick(sf::Time deltaTime)
     DrawMainMenuBar();
     DrawMouseCoordinates();
     DrawFrameTime(deltaTime.asSeconds());
-    DrawTilePainter();
+
+    for (auto& tabEditors: editorsMap) {
+        for (auto& eWindow: tabEditors.second) {
+            if (!eWindow.isOpen || !eWindow.callback)
+                continue;
+
+            eWindow.callback(eWindow);
+        }
+    }
 
     ImGui::SFML::Render(*rWindow);
+}
+
+void EditorRegisterWindow(const char* tab, const char* identifier, editorwindowCallback_t callback,
+                          sf::Keyboard::Key shortcutKey, bool defaultState)
+{
+    editorwindow_t eWindow{
+        .name = identifier,
+        .isOpen = defaultState,
+        .shortcutKey = shortcutKey,
+        .callback = callback
+    };
+
+    editorsMap[tab].push_back(eWindow);
+    printf("[INFO][Editor]: \"%s\" -> \"%s\" window registered successfully.\n", tab, identifier);
+}
+
+void EditorUnRegisterWindow(const char* tab, const char* identifier)
+{
+    if (!editorsMap.count(identifier)) {
+        printf("[ERROR][Editor]: \"%s\" - > \"%s\" is not registered.\n", tab, identifier);
+        return;
+    }
+
+    auto& tabEditors = editorsMap[tab];
+    for (auto it = tabEditors.begin(); it != tabEditors.end(); ++it) {
+        if (it->name == identifier) {
+            tabEditors.erase(it);
+            break;
+        }
+    }
+
+    printf("[INFO][Editor]: \"%s\" -> \"%s\" window unregistered successfully.\n", tab, identifier);
 }
 
 void DrawMainMenuBar()
@@ -84,6 +143,11 @@ void DrawMainMenuBar()
         if (ImGui::MenuItem(ICON_MD_SAVE_AS "Save As")) {
 
         }
+
+        for (auto& eWindow: editorsMap["Files"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+        }
+
         if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
 
         }
@@ -98,14 +162,12 @@ void DrawMainMenuBar()
         if (ImGui::MenuItem(ICON_MD_TERRAIN "Tile Properties")) {
 
         }
+        for (auto& eWindow: editorsMap["Edit"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+        }
 
         ImGui::EndMenu();
     }
-
-//    if (ImGui::BeginMenu(ICON_MD_VIEW_IN_AR "Planes")) {
-//
-//        ImGui::EndMenu();
-//    }
 
     if (ImGui::BeginMenu(ICON_MD_VISIBILITY "View")) {
         if (ImGui::MenuItem(ICON_MD_GRID_3X3 "Show Guides")) {
@@ -113,6 +175,9 @@ void DrawMainMenuBar()
         }
         if (ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties")) {
 
+        }
+        for (auto& eWindow: editorsMap["View"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -126,13 +191,14 @@ void DrawMainMenuBar()
 
         }
 
+        for (auto& eWindow: editorsMap["Tools"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+        }
+
         ImGui::EndMenu();
     }
 
     if (ImGui::BeginMenu(ICON_MD_HELP "Help")) {
-        if (ImGui::MenuItem("Version")) {
-
-        }
         if (ImGui::MenuItem("About")) {
 
         }
@@ -141,102 +207,4 @@ void DrawMainMenuBar()
     }
     ImGui::PopStyleVar();
     ImGui::EndMainMenuBar();
-}
-
-void DrawOnScreenSpriteData(const sf::Sprite& drawable)
-{
-    sf::FloatRect drawableSize = drawable.getLocalBounds();
-    sf::Vector2f drawablePos = drawable.getPosition();
-    sf::RectangleShape collider(sf::Vector2f(drawableSize.width, drawableSize.height));
-    collider.setFillColor(sf::Color::Transparent);
-    collider.setOutlineColor(sf::Color::Red);
-    collider.setOutlineThickness(1.0f);
-    collider.setOrigin(drawable.getOrigin());
-    collider.setPosition(drawable.getPosition());
-
-    sf::Text text;
-    text.setFont(ResFontGet("JetBrainsMono-Regular.ttf"));
-    text.setFillColor(sf::Color::Yellow);
-    text.setCharacterSize(10);
-    text.setPosition(collider.getPosition().x + drawableSize.width + 5.0f, collider.getPosition().y);
-
-    std::stringstream ss;
-    ss << "Position: " << drawablePos.x << "x" << drawablePos.y << '\n';
-
-    text.setString(ss.str());
-    rWindow->draw(text);
-    rWindow->draw(collider);
-}
-
-void DrawMouseCoordinates()
-{
-    sf::Vector2i mousePosScreen = sf::Mouse::getPosition();
-    sf::Vector2i mousePosWindow = sf::Mouse::getPosition(*rWindow);
-    sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), view);
-    sf::Vector2u mousePosGrid;
-    mousePosGrid.x = mousePosView.x / gridSize;
-    mousePosGrid.y = mousePosView.y / gridSize;
-
-    sf::Text text;
-    text.setFont(ResFontGet(BASE_FONT_FILE_NAME));
-    text.setFillColor(textColor);
-    text.setCharacterSize(characterSize);
-    text.setPosition(boundaryOffsetX, boundaryOffsetY);
-
-    std::stringstream ss;
-    ss << "Screen: x=" << mousePosScreen.x << " y=" << mousePosScreen.y << '\n'
-       << "Window: x=" << mousePosWindow.x << " y=" << mousePosWindow.y << '\n'
-       << "View: x=" << mousePosView.x << " y=" << mousePosView.y << '\n'
-       << "Grid: x=" << mousePosGrid.x << " y=" << mousePosGrid.y << '\n';
-
-    text.setString(ss.str());
-    rWindow->draw(text);
-}
-
-void DrawFrameTime(float deltaTime)
-{
-    sf::Text text;
-    text.setFont(ResFontGet(BASE_FONT_FILE_NAME));
-    text.setFillColor(textColor);
-    text.setCharacterSize(characterSize);
-    text.setOrigin(0.0f, text.getCharacterSize());
-    text.setPosition(boundaryOffsetX, rWindow->getSize().y - boundaryOffsetY);
-
-    std::stringstream ss;
-    ss << "FrameTime: " << deltaTime * 100.0f << "ms";
-
-    text.setString(ss.str());
-    rWindow->draw(text);
-}
-
-void DrawTilePainter()
-{
-    if (!ImGui::Begin(ICON_MD_BRUSH "Tile Painter", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::End();
-        return;
-    }
-
-    const spriteSheet_t* spriteSheet = ResSpriteSheetGet("tilesets/LEVEL1_TILES.png");
-    const float textureScale = 0.6f;
-    const int rowMax = 10;
-
-    int count = 1;
-    for (auto& frame: spriteSheet->frames) {
-        const sf::Texture& texture = ResTextureGet(frame.id.c_str());
-
-        ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1);
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
-            ImGui::SetTooltip("%s", frame.id.c_str());
-        }
-
-        if (count <= rowMax) {
-            ImGui::SameLine();
-        } else {
-            count = 0;
-        }
-
-        count++;
-    }
-
-    ImGui::End();
 }

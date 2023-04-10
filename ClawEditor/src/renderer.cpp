@@ -3,6 +3,7 @@
 
 #include "renderer.h"
 #include "editor.h"
+#include "editor_debug.h"
 #include "resource_manager.h"
 
 const int windowSizeX = 1280;
@@ -15,7 +16,6 @@ void RenderWindow(sf::Time deltaTime)
 {
     sf::Sprite rShap;
     rShap.setTexture(ResTextureGet("ACTION/012"));
-//    rShap.setPosition(rWindow->getSize().x / 2.0f, rWindow->getSize().y / 2.0f);
 
     rWindow->clear();
     rWindow->setView(view);
