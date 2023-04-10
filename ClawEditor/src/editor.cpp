@@ -10,6 +10,7 @@
 #include "editor_constants.h"
 #include "editor_tile_painter.h"
 #include "editor_debug.h"
+#include "version.h"
 #include "input.h"
 #include "renderer.h"
 #include "resource_manager.h"
@@ -18,6 +19,7 @@ static std::map<string, std::vector<editorwindow_t>> editorsMap;
 
 void EditorInitFont();
 void DrawMainMenuBar();
+void DrawAboutWindow(editorwindow_t& editorwindow);
 
 void EditorInit()
 {
@@ -25,6 +27,7 @@ void EditorInit()
     EditorInitFont();
 
     EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
+    EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 
 void EditorInitFont()
@@ -199,12 +202,27 @@ void DrawMainMenuBar()
     }
 
     if (ImGui::BeginMenu(ICON_MD_HELP "Help")) {
-        if (ImGui::MenuItem("About")) {
-
+        for (auto& eWindow: editorsMap["Help"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
     }
     ImGui::PopStyleVar();
     ImGui::EndMainMenuBar();
+}
+
+void DrawAboutWindow(editorwindow_t& editorwindow)
+{
+    if (!ImGui::Begin(editorwindow.name.c_str(), &editorwindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::Text(ABOUT_MESSAGE);
+    ImGui::Separator();
+    ImGui::Text("Author: " ABOUT_AUTHOR_MESSAGE);
+    ImGui::Text("Version: " VERSION);
+
+    ImGui::End();
 }
