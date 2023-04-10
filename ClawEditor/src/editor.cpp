@@ -2,11 +2,14 @@
 #include <sstream>
 #include "imgui.h"
 #include "imgui-SFML.h"
+#include "fonts/IconsMaterialDesign.h"
 #include "SFML/Graphics.hpp"
 
 #include "editor.h"
 #include "renderer.h"
 #include "resource_manager.h"
+
+#define BASE_FONT_FILE_NAME "JetBrainsMono-Regular.ttf"
 
 const int characterSize = 14;
 const float boundaryOffsetX = 20.0f;
@@ -16,12 +19,33 @@ const sf::Color textColor = sf::Color::White;
 void EditorInit()
 {
     ImGui::SFML::Init(*rWindow);
-    ResFontLoadFromFile("JetBrainsMono-Regular.ttf");
+    ResFontLoadFromFile(BASE_FONT_FILE_NAME);
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    float baseFontSize = 18.0f;
+    ImFontConfig fontConfig;
+    fontConfig.MergeMode = true;
+    fontConfig.PixelSnapH = true;
+    io.Fonts->AddFontFromFileTTF("../resources/fonts/" BASE_FONT_FILE_NAME, baseFontSize, &fontConfig);
+
+    float iconFontSize = 18.0f;
+    static const ImWchar iconsRanges[] = {ICON_MIN_MD, ICON_MAX_16_MD, 0};
+    ImFontConfig iconsConfig;
+    iconsConfig.MergeMode = true;
+    iconsConfig.PixelSnapH = true;
+    iconsConfig.GlyphMinAdvanceX = iconFontSize;
+    iconsConfig.GlyphOffset.y += 5.0f;
+    iconsConfig.GlyphExtraSpacing.x += 5.0f;
+    io.Fonts->AddFontFromFileTTF("../resources/fonts/" FONT_ICON_FILE_NAME_MD,
+                                 iconFontSize, &iconsConfig, iconsRanges);
+    io.Fonts->Build();
+    ImGui::SFML::UpdateFontTexture();
 }
 
 void EditorShutdown()
 {
-    ResFontUnload("JetBrainsMono-Regular.ttf");
+    ResFontUnload(BASE_FONT_FILE_NAME);
     ImGui::SFML::Shutdown();
 }
 
@@ -75,7 +99,7 @@ void DrawMouseCoordinates()
     mousePosGrid.y = mousePosView.y / gridSize;
 
     sf::Text text;
-    text.setFont(ResFontGet("JetBrainsMono-Regular.ttf"));
+    text.setFont(ResFontGet(BASE_FONT_FILE_NAME));
     text.setFillColor(textColor);
     text.setCharacterSize(characterSize);
     text.setPosition(boundaryOffsetX, boundaryOffsetY);
@@ -93,7 +117,7 @@ void DrawMouseCoordinates()
 void DrawFrameTime(float deltaTime)
 {
     sf::Text text;
-    text.setFont(ResFontGet("JetBrainsMono-Regular.ttf"));
+    text.setFont(ResFontGet(BASE_FONT_FILE_NAME));
     text.setFillColor(textColor);
     text.setCharacterSize(characterSize);
     text.setOrigin(0.0f, text.getCharacterSize());
@@ -108,7 +132,7 @@ void DrawFrameTime(float deltaTime)
 
 void DrawTextureSelector()
 {
-    if (!ImGui::Begin("TileSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (!ImGui::Begin(ICON_MD_VIEW_IN_AR "TileSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
     }
