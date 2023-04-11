@@ -21,7 +21,7 @@ int main()
     ResTextureLoadFromSpriteSheet(*ResSpriteSheetGet("tilesets/LEVEL1_TILES.png"));
 
     EditorInit();
-    RendererInit();
+    RendererInit(windowSizeX, windowSizeY);
     SceneNavigationInit();
 
     sf::Clock deltaClock;
@@ -45,6 +45,8 @@ void HandleEvent()
         EditorEvent(event);
         if (event.type == sf::Event::Closed) {
             rWindow->close();
+        } else if (event.type == sf::Event::Resized) {
+            RendererInit(event.size.width, event.size.height);
         }
     }
 }

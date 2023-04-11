@@ -2,6 +2,7 @@
 #include "SFML/Graphics.hpp"
 
 #include "renderer.h"
+#include "renderer_grid.h"
 #include "editor.h"
 #include "editor_debug.h"
 #include "resource_manager.h"
@@ -11,42 +12,38 @@ const int windowSizeY = 720;
 const int gridSize = 64;
 
 sf::View view;
+sf::View defaultView;
 
 void RenderWindow(sf::Time deltaTime)
 {
-    sf::Sprite rShap;
-    rShap.setTexture(ResTextureGet("ACTION/012"));
+    static bool isInit = false;
+    static sf::Sprite tileGrid[MAX_GRID_SIZE][MAX_GRID_SIZE];
+    if (!isInit) {
+        for (int x = 0; x < MAX_GRID_SIZE; ++x) {
+            for (int y = 0; y < MAX_GRID_SIZE; ++y) {
+                tileGrid[x][y].setTexture(ResTextureGet("ACTION/012"));
+                tileGrid[x][y].setPosition(x * gridSize, y * gridSize);
+            }
+        }
+        isInit = true;
+    }
 
     rWindow->clear();
     rWindow->setView(view);
 
-    if (rShap.getGlobalBounds().contains(sf::Vector2f(rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow))))) {
-        sf::Color col = rShap.getColor();
-        col.a = 250;
-        rShap.setColor(col);
-    } else {
-        sf::Color col = rShap.getColor();
-        col.a = 255;
-        rShap.setColor(col);
-    }
+    DrawGrid(tileGrid);
+    DrawGridMouseHover();
 
-    DrawOnScreenSpriteData(rShap);
-
-    rWindow->draw(rShap);
-
-    rWindow->setView(rWindow->getDefaultView());
+    rWindow->setView(defaultView);
     EditorTick(deltaTime);
     rWindow->display();
 }
 
-void RendererInit()
+void RendererInit(int rWidth, int rHeight)
 {
-    view.setSize(windowSizeX, windowSizeY);
+    defaultView = sf::View(sf::FloatRect(0.0f, 0.0f, rWidth, rHeight));
+    view.setSize(rWidth, rHeight);
     view.setCenter(rWindow->getSize().x / 2.0f, rWindow->getSize().y / 2.0f);
-}
-
-void DrawGrid()
-{
 }
 
 void DrawCollider(const sf::Sprite& s)
