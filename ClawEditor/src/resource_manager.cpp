@@ -235,7 +235,7 @@ std::vector<asset_slot_t*> ResGetAllAssetSlots(asset_types_t type, int tags)
 
     std::for_each(table->begin(), table->end(),
                   [&](std::pair<const string, asset_slot_t>& a) {
-                    if (a.second.assetTags | tags) {
+                    if (a.second.assetTags & tags) {
                         assets.push_back(&a.second);
                     }
                   });

@@ -17,9 +17,16 @@
 
 static std::map<string, std::vector<editorwindow_t>> editorsMap;
 
-void EditorInitFont();
-void DrawMainMenuBar();
-void DrawAboutWindow(editorwindow_t& editorwindow);
+static void EditorRegisterWindow(const char* tab,
+                                 const char* name,
+                                 editorwindowCallback_t callback,
+                                 sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown,
+                                 bool defaultState = false);
+static void EditorUnRegisterWindow(editorwindowCallback_t callback);
+
+static void EditorInitFont();
+static void DrawMainMenuBar();
+static void DrawAboutWindow(editorwindow_t& editorwindow);
 
 void EditorInit()
 {
@@ -30,9 +37,11 @@ void EditorInit()
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 
-void EditorInitFont()
+static void EditorInitFont()
 {
-    ResFontLoadFromFile(BASE_FONT_FILE_NAME);
+    AssetPushType(ASSET_FONT);
+    ResLoadFromFile(BASE_FONT_FILE_NAME);
+    AssetPopType();
 
     ImGuiIO& io = ImGui::GetIO();
     ImFontConfig fontConfig;
@@ -78,12 +87,14 @@ void EditorEvent(sf::Event event)
 
 }
 
-void EditorTick(sf::Time deltaTime)
+void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 {
     ImGui::SFML::Update(*rWindow, deltaTime);
+    DrawOnScreenSpriteData(renderContext, renderContext.sceneContext.tileGrid[0][0]);
+    DrawGridMouseHover(renderContext);
+    DrawMouseCoordinates(renderContext);
+    DrawFrameTime(renderContext, deltaTime.asSeconds());
     DrawMainMenuBar();
-    DrawMouseCoordinates();
-    DrawFrameTime(deltaTime.asSeconds());
 
     for (auto& tabEditors: editorsMap) {
         for (auto& eWindow: tabEditors.second) {
@@ -97,8 +108,8 @@ void EditorTick(sf::Time deltaTime)
     ImGui::SFML::Render(*rWindow);
 }
 
-void EditorRegisterWindow(const char* tab, const char* identifier, editorwindowCallback_t callback,
-                          sf::Keyboard::Key shortcutKey, bool defaultState)
+static void EditorRegisterWindow(const char* tab, const char* identifier, editorwindowCallback_t callback,
+                                 sf::Keyboard::Key shortcutKey, bool defaultState)
 {
     editorwindow_t eWindow{
         .name = identifier,
@@ -111,7 +122,7 @@ void EditorRegisterWindow(const char* tab, const char* identifier, editorwindowC
     printf("[INFO][Editor]: \"%s\" -> \"%s\" window registered successfully.\n", tab, identifier);
 }
 
-void EditorUnRegisterWindow(const char* tab, const char* identifier)
+static void EditorUnRegisterWindow(const char* tab, const char* identifier)
 {
     if (!editorsMap.count(identifier)) {
         printf("[ERROR][Editor]: \"%s\" - > \"%s\" is not registered.\n", tab, identifier);
@@ -129,7 +140,7 @@ void EditorUnRegisterWindow(const char* tab, const char* identifier)
     printf("[INFO][Editor]: \"%s\" -> \"%s\" window unregistered successfully.\n", tab, identifier);
 }
 
-void DrawMainMenuBar()
+static void DrawMainMenuBar()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 5.0f));
     ImGui::BeginMainMenuBar();
@@ -212,7 +223,7 @@ void DrawMainMenuBar()
     ImGui::EndMainMenuBar();
 }
 
-void DrawAboutWindow(editorwindow_t& editorwindow)
+static void DrawAboutWindow(editorwindow_t& editorwindow)
 {
     if (!ImGui::Begin(editorwindow.name.c_str(), &editorwindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
