@@ -1,3 +1,4 @@
+#include "imgui.h"
 #include "SFML/System.hpp"
 
 #include "scene_navigation.h"
@@ -12,8 +13,8 @@ float gameZoom = 1.0f;
 sf::Cursor cursorHand;
 sf::Cursor cursorArrow;
 
-static void SceneMovement();
-static void SceneZoom();
+static void SceneMovement(render_context_t& renderContext);
+static void SceneZoom(render_context_t& renderContext);
 
 void SceneNavigationInit()
 {
@@ -21,13 +22,18 @@ void SceneNavigationInit()
     cursorArrow.loadFromSystem(sf::Cursor::Arrow);
 }
 
-void SceneNavigationUpdate()
+void SceneNavigationUpdate(render_context_t& renderContext)
 {
-    SceneMovement();
-    SceneZoom();
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
+        return;
+    }
+
+    SceneMovement(renderContext);
+    SceneZoom(renderContext);
 }
 
-void SceneMovement()
+void SceneMovement(render_context_t& renderContext)
 {
     static sf::Vector2i oldPos;
     sf::Vector2i currentPos;
@@ -35,9 +41,9 @@ void SceneMovement()
     if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
         currentPos = sf::Mouse::getPosition(*rWindow);
         sf::Vector2f pos = rWindow->mapPixelToCoords(sf::Vector2i(oldPos.x - currentPos.x, oldPos.y - currentPos.y));
-        view.move(pos.x / gameZoom, pos.y / gameZoom);
+        renderContext.worldView.move(pos.x / gameZoom, pos.y / gameZoom);
 
-        rWindow->setView(view);
+        rWindow->setView(renderContext.worldView);
         oldPos = currentPos;
         rWindow->setMouseCursor(cursorHand);
     } else {
@@ -46,7 +52,7 @@ void SceneMovement()
     }
 }
 
-void SceneZoom()
+void SceneZoom(render_context_t& renderContext)
 {
     if (!IsMouseWheelScrolled() || GetMouseWheelScroll().wheel != sf::Mouse::Wheel::VerticalWheel) {
         return;
@@ -63,5 +69,5 @@ void SceneZoom()
     sf::Vector2f viewSize = sf::Vector2f(rWindow->getSize());
     viewSize.x /= gameZoom;
     viewSize.y /= gameZoom;
-    view.setSize(viewSize);
+    renderContext.worldView.setSize(viewSize);
 }

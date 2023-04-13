@@ -1,5 +1,4 @@
 #include <iostream>
-#include <sstream>
 #include <vector>
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -8,7 +7,7 @@
 
 #include "editor.h"
 #include "editor_constants.h"
-#include "editor_tile_painter.h"
+#include "editor_imgui.h"
 #include "editor_debug.h"
 #include "version.h"
 #include "input.h"
@@ -32,7 +31,10 @@ void EditorInit()
 {
     ImGui::SFML::Init(*rWindow);
     EditorInitFont();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
 
+    EditorRegisterWindow("Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I, true);
     EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
@@ -199,9 +201,6 @@ static void DrawMainMenuBar()
 
     if (ImGui::BeginMenu(ICON_MD_HANDYMAN "Tools")) {
         if (ImGui::MenuItem(ICON_MD_TERRAIN "Tiles")) {
-
-        }
-        if (ImGui::MenuItem(ICON_MD_COLLECTIONS "Image Sets")) {
 
         }
 

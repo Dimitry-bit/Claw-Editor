@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
-
 #include "SFML/System.hpp"
+
+#include "entity.h"
+#include "renderer.h"
 
 using std::string;
 
@@ -18,8 +20,4 @@ struct editorwindow_t {
 void EditorInit();
 void EditorShutdown();
 void EditorEvent(sf::Event event);
-void EditorTick(sf::Time deltaTime);
-
-void EditorRegisterWindow(const char* tab, const char* name, editorwindowCallback_t callback,
-                          sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown, bool defaultState = false);
-void EditorUnRegisterWindow(editorwindowCallback_t callback);
+void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime);

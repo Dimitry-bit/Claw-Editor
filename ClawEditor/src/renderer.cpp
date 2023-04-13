@@ -2,70 +2,52 @@
 #include "SFML/Graphics.hpp"
 
 #include "renderer.h"
-#include "renderer_grid.h"
 #include "editor.h"
-#include "editor_debug.h"
-#include "resource_manager.h"
 
-const int windowSizeX = 1280;
-const int windowSizeY = 720;
-const int gridSize = 64;
+sf::RenderWindow* rWindow;
 
-sf::View view;
-sf::View defaultView;
+static void DrawGrid(const sf::Sprite tileGrid[][MAX_GRID_SIZE], int size);
 
-void RenderWindow(sf::Time deltaTime)
+void RendererInit(render_context_t& renderContext, int rWidth, int rHeight)
 {
-    static bool isInit = false;
-    static sf::Sprite tileGrid[MAX_GRID_SIZE][MAX_GRID_SIZE];
-    if (!isInit) {
-        for (int x = 0; x < MAX_GRID_SIZE; ++x) {
-            for (int y = 0; y < MAX_GRID_SIZE; ++y) {
-                tileGrid[x][y].setTexture(ResTextureGet("ACTION/012"));
-                tileGrid[x][y].setPosition(x * gridSize, y * gridSize);
-            }
-        }
-        isInit = true;
-    }
+    renderContext.uiView = sf::View(sf::FloatRect(0.0f, 0.0f, rWidth, rHeight));
+    renderContext.worldView.setSize(rWidth, rHeight);
+    renderContext.worldView.setCenter(rWindow->getSize().x / 2.0f, rWindow->getSize().y / 2.0f);
+}
 
+void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime)
+{
     rWindow->clear();
-    rWindow->setView(view);
 
-    DrawGrid(tileGrid);
-    DrawGridMouseHover();
+    rWindow->setView(renderContext.worldView);
+    DrawGrid(renderContext.sceneContext.tileGrid, gridSize);
 
-    rWindow->setView(defaultView);
-    EditorTick(deltaTime);
+    rWindow->setView(renderContext.uiView);
+    UpdateAndRenderEditor(renderContext, deltaTime);
+
     rWindow->display();
 }
 
-void RendererInit(int rWidth, int rHeight)
+void DrawGrid(const sf::Sprite tileGrid[][MAX_GRID_SIZE], int size)
 {
-    defaultView = sf::View(sf::FloatRect(0.0f, 0.0f, rWidth, rHeight));
-    view.setSize(rWidth, rHeight);
-    view.setCenter(rWindow->getSize().x / 2.0f, rWindow->getSize().y / 2.0f);
-}
+    const sf::Vector2f drawCenter = rWindow->getView().getCenter();
+    const sf::Vector2f viewSize = rWindow->getView().getSize();
+    const float width = viewSize.x / 2;
+    const float height = viewSize.y / 2;
 
-void DrawCollider(const sf::Sprite& s)
-{
-    sf::FloatRect globalBounds = s.getGlobalBounds();
-    sf::RectangleShape colliderBoundaries;
-    colliderBoundaries.setFillColor(sf::Color::Transparent);
-    colliderBoundaries.setOutlineColor(sf::Color::Green);
-    colliderBoundaries.setOutlineThickness(1.0f);
-    colliderBoundaries.setPosition(globalBounds.left, globalBounds.top);
-    colliderBoundaries.setSize(sf::Vector2f(globalBounds.width, globalBounds.height));
+    int fromX = (drawCenter.x - width) / size - 2;
+    int toX = (drawCenter.x + width) / size + 2;
+    int fromY = (drawCenter.y - height) / size - 2;
+    int toY = (drawCenter.y + height) / size + 2;
 
-    rWindow->draw(colliderBoundaries);
-}
+    fromX = std::clamp(fromX, 0, MAX_GRID_SIZE - 1);
+    toX = std::clamp(toX, 0, MAX_GRID_SIZE - 1);
+    fromY = std::clamp(fromY, 0, MAX_GRID_SIZE - 1);
+    toY = std::clamp(toY, 0, MAX_GRID_SIZE - 1);
 
-void DrawOrigin(const sf::Sprite& s)
-{
-    sf::CircleShape origin;
-    origin.setRadius(3.0f);
-    origin.setOrigin(origin.getRadius(), origin.getRadius());
-    origin.setFillColor(sf::Color::Magenta);
-    origin.setPosition(s.getGlobalBounds().left + s.getOrigin().x, s.getGlobalBounds().top + s.getOrigin().y);
-
-    rWindow->draw(origin);
+    for (int x = fromX; x < toX; ++x) {
+        for (int y = fromY; y < toY; ++y) {
+            rWindow->draw(tileGrid[x][y]);
+        }
+    }
 }

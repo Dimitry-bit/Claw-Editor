@@ -1,19 +1,24 @@
 #pragma once
 
+#include <vector>
 #include "SFML/Graphics.hpp"
 
-#define MAX_GRID_SIZE 50
+#include "scene_manager.h"
 
-extern const int windowSizeX;
-extern const int windowSizeY;
-extern const int gridSize;
+using std::string;
 
 extern sf::RenderWindow* rWindow;
-extern sf::View view;
-extern sf::View defaultView;
 
-void RendererInit(int width, int height);
-void RenderWindow(sf::Time deltaTime);
+struct render_context_t {
+    sf::View worldView;
+    sf::View uiView;
+    scene_context_t& sceneContext;
+    struct {
+        std::vector<string> tileNames;
+        std::vector<string> treasureNames;
+        std::vector<string> pickUpNames;
+    } assetContext;
+};
 
-void DrawCollider(const sf::Sprite& s);
-void DrawOrigin(const sf::Sprite& s);
+void RendererInit(render_context_t& renderContext, int rWidth, int rHeight);
+void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime);

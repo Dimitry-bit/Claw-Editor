@@ -1,5 +1,3 @@
-#include <iostream>
-#include "imgui-SFML.h"
 #include "SFML/Graphics.hpp"
 
 #include "input.h"
@@ -7,46 +5,56 @@
 #include "editor.h"
 #include "resource_manager.h"
 #include "scene_navigation.h"
+#include "scene_manager.h"
 
-sf::RenderWindow* rWindow;
-
-void HandleEvent();
+const int initWindowWidth = 1280;
+const int initWindowHeight = 720;
+const char* windowName = "Claw Editor";
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(windowSizeX, windowSizeY), "Claw Editor");
+    sf::ContextSettings contextSettings;
+    contextSettings.antialiasingLevel = 4;
+
+    sf::RenderWindow window(sf::VideoMode(initWindowWidth, initWindowHeight),
+                            windowName,
+                            sf::Style::Default,
+                            contextSettings);
     rWindow = &window;
 
-    ResSpriteSheetLoadFromFile("tilesets/LEVEL1_TILES.png");
-    ResTextureLoadFromSpriteSheet(*ResSpriteSheetGet("tilesets/LEVEL1_TILES.png"));
+    scene_context_t sceneContext;
+    render_context_t renderContext = {
+        .sceneContext  = sceneContext,
+        .assetContext {
+        }
+    };
+
+    SceneAllocAssets();
+    SceneInitGrid(sceneContext);
 
     EditorInit();
-    RendererInit(windowSizeX, windowSizeY);
+    RendererInit(renderContext, initWindowWidth, initWindowHeight);
     SceneNavigationInit();
 
     sf::Clock deltaClock;
     while (window.isOpen()) {
-        HandleEvent();
-        SceneNavigationUpdate();
-        RenderWindow(deltaClock.restart());
+        sf::Event event;
+        while (rWindow->pollEvent(event)) {
+            InputEvent(event);
+            EditorEvent(event);
+            if (event.type == sf::Event::Closed) {
+                rWindow->close();
+            } else if (event.type == sf::Event::Resized) {
+                RendererInit(renderContext, event.size.width, event.size.height);
+            }
+        }
+
+        SceneNavigationUpdate(renderContext);
+        UpdateAndRenderWindow(renderContext, deltaClock.restart());
         ClearKeyStatus();
     }
     EditorShutdown();
     ResUnloadAll();
 
     return 0;
-}
-
-void HandleEvent()
-{
-    sf::Event event;
-    while (rWindow->pollEvent(event)) {
-        InputEvent(event);
-        EditorEvent(event);
-        if (event.type == sf::Event::Closed) {
-            rWindow->close();
-        } else if (event.type == sf::Event::Resized) {
-            RendererInit(event.size.width, event.size.height);
-        }
-    }
 }
