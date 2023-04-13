@@ -1,4 +1,5 @@
 #include <cassert>
+#include <regex>
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio/SoundBuffer.hpp"
 
@@ -22,10 +23,12 @@ asset_context_t assetContext;
 template <typename Type>
 bool LoadFromFile(asset_slot_t& slot, const char* dir, const char* identifier);
 
-asset_slot_t* AssetGet(std::map<std::string, asset_slot_t>& table, const char* identifier);
-
 template <typename Type>
 void AssetUnload(std::map<std::string, asset_slot_t>& table, const char* identifier, bool erase);
+
+asset_slot_t* AssetGet(std::map<std::string, asset_slot_t>& table, const char* identifier);
+
+bool AssetFilterByRegexTag(const asset_slot_t& a, const std::regex& regex, int tag);
 
 void AssetPopType()
 {
@@ -203,6 +206,12 @@ asset_slot_t* ResGetAssetSlot(asset_types_t type, const char* identifier)
 
 std::vector<asset_slot_t*> ResGetAllAssetSlots(asset_types_t type, int tags)
 {
+    static std::regex regex("");
+    return ResGetAllAssetSlots(type, regex, tags);
+}
+
+std::vector<asset_slot_t*> ResGetAllAssetSlots(asset_types_t type, const std::regex& regex, int tags)
+{
     std::vector<asset_slot_t*> assets;
     std::map<string, asset_slot_t>* table;
 
@@ -235,10 +244,11 @@ std::vector<asset_slot_t*> ResGetAllAssetSlots(asset_types_t type, int tags)
 
     std::for_each(table->begin(), table->end(),
                   [&](std::pair<const string, asset_slot_t>& a) {
-                    if (a.second.assetTags & tags) {
+                    if (AssetFilterByRegexTag(a.second, regex, tags)) {
                         assets.push_back(&a.second);
                     }
-                  });
+                  }
+    );
 
     return assets;
 }
@@ -367,4 +377,17 @@ void ResUnloadAll()
         ResSpriteSheetUnload(asset.first.c_str(), false);
     }
     assetContext.spriteSheetTBL.clear();
+}
+
+bool AssetFilterByRegexTag(const asset_slot_t& a, const std::regex& regex, int tag)
+{
+    if (!(a.assetTags & tag)) {
+        return false;
+    }
+
+    if (!std::regex_search(a.header.id, regex)) {
+        return false;
+    }
+
+    return true;
 }

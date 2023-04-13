@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <regex>
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
 
@@ -7,10 +8,12 @@
 
 enum asset_tags_t {
     ASSET_TAG_NONE = 0,
+    ASSET_TAG_ANY = ~0,
     ASSET_TAG_TILE = 1 << 1,
     ASSET_TAG_OBJ = 1 << 2,
     ASSET_TAG_TREASURE = 1 << 3,
     ASSET_TAG_PICKUP = 1 << 4,
+    ASSET_TAG_ANIMATION = 1 << 5,
 };
 
 enum asset_types_t {
@@ -70,6 +73,7 @@ void ResUnloadAll();
 
 asset_slot_t* ResGetAssetSlot(asset_types_t type, const char* identifier);
 std::vector<asset_slot_t*> ResGetAllAssetSlots(asset_types_t type, int tags);
+std::vector<asset_slot_t*> ResGetAllAssetSlots(asset_types_t type, const std::regex& regex, int tags);
 const sf::Font& ResFontGet(const char* identifier);
 const sf::Image& ResImageGet(const char* identifier);
 const sf::Texture& ResTextureGet(const char* identifier);
