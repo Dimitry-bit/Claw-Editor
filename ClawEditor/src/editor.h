@@ -17,6 +17,16 @@ struct editorwindow_t {
     editorwindowCallback_t callback;
 };
 
+enum editor_modes_t {
+    EDITOR_MODE_TILE,
+    EDITOR_MODE_OBJ,
+};
+
+struct editor_context_t {
+    editor_modes_t mode;
+    entity_t* entityHit;
+};
+
 void EditorInit();
 void EditorShutdown();
 void EditorEvent(sf::Event event);

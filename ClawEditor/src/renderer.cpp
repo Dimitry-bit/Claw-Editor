@@ -6,7 +6,7 @@
 
 sf::RenderWindow* rWindow;
 
-static void DrawGrid(const sf::Sprite tileGrid[][MAX_GRID_SIZE], int size);
+static void DrawGrid(const entity_t tileGrid[][MAX_GRID_SIZE], int size);
 
 void RendererInit(render_context_t& renderContext, int rWidth, int rHeight)
 {
@@ -28,7 +28,7 @@ void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime)
     rWindow->display();
 }
 
-void DrawGrid(const sf::Sprite tileGrid[][MAX_GRID_SIZE], int size)
+void DrawGrid(const entity_t tileGrid[][MAX_GRID_SIZE], int size)
 {
     const sf::Vector2f drawCenter = rWindow->getView().getCenter();
     const sf::Vector2f viewSize = rWindow->getView().getSize();
@@ -47,7 +47,7 @@ void DrawGrid(const sf::Sprite tileGrid[][MAX_GRID_SIZE], int size)
 
     for (int x = fromX; x < toX; ++x) {
         for (int y = fromY; y < toY; ++y) {
-            rWindow->draw(tileGrid[x][y]);
+            rWindow->draw(tileGrid[x][y].sprite);
         }
     }
 }

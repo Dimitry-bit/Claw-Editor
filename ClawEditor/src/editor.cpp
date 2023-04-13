@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui-SFML.h"
 #include "fonts/IconsMaterialDesign.h"
 #include "SFML/Graphics.hpp"
@@ -25,7 +26,9 @@ static void EditorUnRegisterWindow(editorwindowCallback_t callback);
 
 static void EditorInitFont();
 static void DrawMainMenuBar();
+static void DrawStatusBar(editor_context_t& editorContext);
 static void DrawAboutWindow(editorwindow_t& editorwindow);
+static bool IsHitEntity(editor_context_t& editorContext, const render_context_t& renderContext);
 
 void EditorInit()
 {
@@ -91,12 +94,17 @@ void EditorEvent(sf::Event event)
 
 void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 {
+    static editor_context_t editorContext = {};
+
+    IsHitEntity(editorContext, renderContext);
+
     ImGui::SFML::Update(*rWindow, deltaTime);
-    DrawOnScreenSpriteData(renderContext, renderContext.sceneContext.tileGrid[0][0]);
+    DrawOnScreenSpriteData(renderContext, editorContext.entityHit);
     DrawGridMouseHover(renderContext);
     DrawMouseCoordinates(renderContext);
     DrawFrameTime(renderContext, deltaTime.asSeconds());
     DrawMainMenuBar();
+    DrawStatusBar(editorContext);
 
     for (auto& tabEditors: editorsMap) {
         for (auto& eWindow: tabEditors.second) {
@@ -233,6 +241,60 @@ static void DrawAboutWindow(editorwindow_t& editorwindow)
     ImGui::Separator();
     ImGui::Text("Author: " ABOUT_AUTHOR_MESSAGE);
     ImGui::Text("Version: " VERSION);
+
+    ImGui::End();
+}
+
+static bool IsHitEntity(editor_context_t& editorContext, const render_context_t& renderContext)
+{
+    if (!sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        return false;
+    }
+
+    sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), renderContext.worldView);
+    sf::Vector2u mousePosGrid(mousePosView.x / gridSize, mousePosView.y / gridSize);
+
+    if (editorContext.mode == EDITOR_MODE_TILE) {
+        if (!(mousePosGrid.x >= 0 && mousePosGrid.x < MAX_GRID_SIZE)) {
+            return false;
+        }
+        if (!(mousePosGrid.y >= 0 && mousePosGrid.y < MAX_GRID_SIZE)) {
+            return false;
+        }
+        editorContext.entityHit = &renderContext.sceneContext.tileGrid[mousePosGrid.x][mousePosGrid.y];
+    }
+
+    return true;
+}
+
+static void DrawStatusBar(editor_context_t& editorContext)
+{
+    ImGuiWindowFlags
+        window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+    float height = ImGui::GetFrameHeight();
+
+    if (!ImGui::BeginViewportSideBar("##SecondaryMenuBar", NULL, ImGuiDir_Up, height, window_flags)) {
+        ImGui::End();
+        return;
+    }
+
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::Selectable(ICON_MD_TERRAIN"Tile",
+                              editorContext.mode == EDITOR_MODE_TILE,
+                              0,
+                              ImGui::CalcTextSize(ICON_MD_TERRAIN"Tile"))) {
+            editorContext.mode = EDITOR_MODE_TILE;
+        }
+
+        if (ImGui::Selectable(ICON_MD_VIEW_IN_AR"Object",
+                              editorContext.mode == EDITOR_MODE_OBJ,
+                              0,
+                              ImGui::CalcTextSize(ICON_MD_DATA_OBJECT"Object"))) {
+            editorContext.mode = EDITOR_MODE_OBJ;
+        }
+
+        ImGui::EndMenuBar();
+    }
 
     ImGui::End();
 }

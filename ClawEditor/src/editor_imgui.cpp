@@ -6,6 +6,8 @@
 #include "editor.h"
 #include "renderer.h"
 
+entity_t selectedEntity;
+
 void DrawImageSet(editorwindow_t& eWindow)
 {
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_NoDocking)) {
@@ -106,7 +108,11 @@ void DrawTilePainter(editorwindow_t& eWindow)
         for (auto& frame: spriteSlot->spriteSheet->frames) {
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
 
-            ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1);
+            if (ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1)) {
+                selectedEntity.graphicsID = frame.id.c_str();
+                selectedEntity.sprite.setTexture(texture);
+            }
+
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
                 ImGui::SetTooltip("FileName: %s\nFileID: %s\nSize: %dx%d",
                                   spriteSlot->header.fileName.c_str(),

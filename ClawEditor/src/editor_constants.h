@@ -9,4 +9,4 @@ inline const float iconFontSize = 18.0f;
 inline const int sfmlTextSize = 13;
 
 inline const float boundaryOffsetX = 20.0f;
-inline const float boundaryOffsetY = 30.0f;
+inline const float boundaryOffsetY = 45.0f;

@@ -35,10 +35,7 @@ void SceneInitGrid(scene_context_t& sceneContext)
 {
     auto& tileGrid = sceneContext.tileGrid;
 
-    for (int x = 0; x < MAX_GRID_SIZE; ++x) {
-        for (int y = 0; y < MAX_GRID_SIZE; ++y) {
-            tileGrid[x][y].setTexture(ResTextureGet("ACTION/012"));
-            tileGrid[x][y].setPosition(x * gridSize, y * gridSize);
-        }
-    }
+    tileGrid[0][0].graphicsID = "ACTION/012";
+    tileGrid[0][0].sprite.setTexture(ResTextureGet("ACTION/304"));
+    tileGrid[0][0].sprite.setPosition(0 * gridSize, 0 * gridSize);
 }
