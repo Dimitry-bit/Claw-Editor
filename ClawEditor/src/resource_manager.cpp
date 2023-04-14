@@ -150,12 +150,18 @@ bool ResTextureLoadFromSpriteSheet(const char* identifier, int tags)
             continue;
         }
 
-        asset_slot_t& slot = assetContext.textureTBL[frame.id];
+        std::string frameIdentifier(identifier);
+        frameIdentifier = frameIdentifier.substr(0, frameIdentifier.find_last_of('.'));
+        frameIdentifier.push_back('/');
+        frameIdentifier.append(frame.id);
+
+        asset_slot_t& slot = assetContext.textureTBL[frameIdentifier];
 
         slot.texture = tex;
         slot.header.fileName = spriteSheetAsset->header.fileName;
         slot.header.fileExtension = spriteSheetAsset->header.fileExtension;
-        slot.header.id = frame.id;
+        slot.header.id = frameIdentifier;
+        frame.id = frameIdentifier;
         slot.type = ASSET_TEXTURE;
         slot.assetTags = spriteSheetAsset->assetTags | tags;
     }
