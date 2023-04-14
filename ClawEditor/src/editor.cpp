@@ -15,6 +15,7 @@
 #include "input.h"
 #include "renderer.h"
 #include "resource_manager.h"
+#include "key_to_string.h"
 
 static std::map<string, std::vector<editorwindow_t>> editorsMap;
 
@@ -26,7 +27,7 @@ static void EditorRegisterWindow(const char* tab,
 static void EditorUnRegisterWindow(editorwindowCallback_t callback);
 
 static void EditorInitFont();
-static void DrawMainMenuBar();
+static void DrawMainMenuBar(render_context_t& renderContext);
 static void DrawStatusBar(editor_context_t& editorContext);
 static void DrawAboutWindow(editor_context_t& context, editorwindow_t& editorwindow);
 static bool IsHitEntity(editor_context_t& editorContext, const render_context_t& renderContext);
@@ -40,6 +41,7 @@ void EditorInit()
 
     EditorRegisterWindow("Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I, true);
     EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
+    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Object Painter", DrawObjectPainter, sf::Keyboard::O, true);
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 
@@ -104,7 +106,7 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
     DrawGridMouseHover(renderContext);
     DrawMouseCoordinates(renderContext);
     DrawFrameTime(renderContext, deltaTime.asSeconds());
-    DrawMainMenuBar();
+    DrawMainMenuBar(renderContext);
     DrawStatusBar(editorContext);
 
     for (auto& tabEditors: editorsMap) {
@@ -116,7 +118,10 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
         }
     }
 
-    EditorActionPlaceEntity(renderContext, editorContext);
+    ImGuiIO& io = ImGui::GetIO();
+    if (!(io.WantCaptureMouse || io.WantCaptureKeyboard)) {
+        EditorActionPlaceEntity(renderContext, editorContext);
+    }
 
     ImGui::SFML::Render(*rWindow);
 }
@@ -153,7 +158,7 @@ static void EditorUnRegisterWindow(const char* tab, const char* identifier)
     printf("[INFO][Editor]: \"%s\" -> \"%s\" window unregistered successfully.\n", tab, identifier);
 }
 
-static void DrawMainMenuBar()
+static void DrawMainMenuBar(render_context_t& renderContext)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 5.0f));
     ImGui::BeginMainMenuBar();
@@ -172,7 +177,7 @@ static void DrawMainMenuBar()
         }
 
         for (auto& eWindow: editorsMap["Files"]) {
-            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
         }
 
         if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
@@ -190,7 +195,7 @@ static void DrawMainMenuBar()
 
         }
         for (auto& eWindow: editorsMap["Edit"]) {
-            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -200,11 +205,9 @@ static void DrawMainMenuBar()
         if (ImGui::MenuItem(ICON_MD_GRID_3X3 "Show Guides")) {
 
         }
-        if (ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties")) {
-
-        }
+        ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties", nullptr, &renderContext.isDrawCollider);
         for (auto& eWindow: editorsMap["View"]) {
-            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -216,7 +219,7 @@ static void DrawMainMenuBar()
         }
 
         for (auto& eWindow: editorsMap["Tools"]) {
-            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -224,7 +227,7 @@ static void DrawMainMenuBar()
 
     if (ImGui::BeginMenu(ICON_MD_HELP "Help")) {
         for (auto& eWindow: editorsMap["Help"]) {
-            ImGui::MenuItem(eWindow.name.c_str(), nullptr, &eWindow.isOpen);
+            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
         }
 
         ImGui::EndMenu();

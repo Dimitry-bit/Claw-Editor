@@ -12,6 +12,7 @@ extern sf::RenderWindow* rWindow;
 struct render_context_t {
     sf::View worldView;
     sf::View uiView;
+    bool isDrawCollider;
     scene_context_t& sceneContext;
     struct {
         std::vector<string> tileNames;

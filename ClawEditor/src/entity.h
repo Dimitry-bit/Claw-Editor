@@ -12,6 +12,7 @@ enum colliders_t {
     COLLIDER_SOLID,
     COLLIDER_DEATH,
     COLLIDER_CLIMBABLE,
+    COLLIDER_GROUND,
 };
 
 struct entity_t {

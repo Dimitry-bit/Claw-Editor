@@ -3,10 +3,11 @@
 
 #include "renderer.h"
 #include "editor.h"
+#include "editor_debug.h"
 
 sf::RenderWindow* rWindow;
 
-static void DrawGrid(entity_t* tileGrid[][MAX_GRID_SIZE], int size);
+static void DrawGrid(render_context_t& renderContext, entity_t* tileGrid[][MAX_GRID_SIZE], int size);
 static void DrawEntities(const std::list<entity_t*>& entities);
 
 void RendererInit(render_context_t& renderContext, int rWidth, int rHeight)
@@ -21,7 +22,7 @@ void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime)
     rWindow->clear();
 
     rWindow->setView(renderContext.worldView);
-    DrawGrid(renderContext.sceneContext.tileGrid, gridSize);
+    DrawGrid(renderContext, renderContext.sceneContext.tileGrid, gridSize);
     DrawEntities(renderContext.sceneContext.objects);
 
     rWindow->setView(renderContext.uiView);
@@ -30,7 +31,7 @@ void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime)
     rWindow->display();
 }
 
-void DrawGrid(entity_t* tileGrid[][MAX_GRID_SIZE], int size)
+static void DrawGrid(render_context_t& renderContext, entity_t* tileGrid[][MAX_GRID_SIZE], int size)
 {
     const sf::Vector2f drawCenter = rWindow->getView().getCenter();
     const sf::Vector2f viewSize = rWindow->getView().getSize();
@@ -53,6 +54,10 @@ void DrawGrid(entity_t* tileGrid[][MAX_GRID_SIZE], int size)
                 continue;
 
             rWindow->draw(tileGrid[x][y]->sprite);
+
+            if (renderContext.isDrawCollider) {
+                DrawCollider(tileGrid[x][y]);
+            }
         }
     }
 }

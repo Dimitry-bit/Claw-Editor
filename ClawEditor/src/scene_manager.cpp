@@ -41,6 +41,22 @@ void SceneInitGrid(scene_context_t& sceneContext)
     EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_SOLID, sf::Vector2f(0, 0));
     SceneAddTile(sceneContext, tile, 0, 0);
 
+    tile = EntityAlloc();
+    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_CLIMBABLE, sf::Vector2f(64, 0));
+    SceneAddTile(sceneContext, tile, 1, 0);
+
+    tile = EntityAlloc();
+    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_DEATH, sf::Vector2f(2 * 64, 0));
+    SceneAddTile(sceneContext, tile, 2, 0);
+
+    tile = EntityAlloc();
+    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_GROUND, sf::Vector2f(3 * 64, 0));
+    SceneAddTile(sceneContext, tile, 3, 0);
+
+    tile = EntityAlloc();
+    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_CLEAR, sf::Vector2f(4 * 64, 0));
+    SceneAddTile(sceneContext, tile, 4, 0);
+
     entity_t* coin = EntityAlloc();
     const spriteSheet_t& spriteSheet = ResSpriteSheetGet("objects/COINS.png");
     coin->graphicsID = spriteSheet.frames[0].id;

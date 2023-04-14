@@ -24,7 +24,11 @@ void EditorActionPlaceEntity(render_context_t& renderContext, editor_context_t& 
     } else if (editorContext.mode == EDITOR_MODE_OBJ) {
         entity_t* entity = EntityAlloc();
         const sf::Vector2f& pos = editorContext.editorHit.viewPosition;
-        EntityCreateOBJ(entity, selectedEntity->graphicsID.c_str(), selectedEntity->logic.c_str(), pos);
+        EntityCreateOBJ(entity,
+                        selectedEntity->graphicsID.c_str(),
+                        selectedEntity->logic.c_str(),
+                        pos,
+                        selectedEntity->sprite.getOrigin());
         SceneAddObject(renderContext.sceneContext, entity);
     }
 }

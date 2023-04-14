@@ -3,6 +3,7 @@
 
 #include "editor_debug.h"
 #include "editor_constants.h"
+#include "entity.h"
 #include "renderer.h"
 #include "resource_manager.h"
 
@@ -12,6 +13,18 @@ const static sf::Color spriteDebugColor = sf::Color::Yellow;
 const static sf::Color colliderColor = sf::Color::Red;
 const static sf::Color hoverFillColor = sf::Color(255, 255, 255, 35);
 const static sf::Color hoverFrameColor = sf::Color(255, 255, 255, 255);
+const static sf::Color colliderSolidColor = sf::Color(0, 0, 255, 80);
+const static sf::Color colliderGroundColor = sf::Color(0, 255, 0, 80);
+const static sf::Color colliderClimbColor = sf::Color(255, 255, 0, 80);
+const static sf::Color colliderDeathColor = sf::Color(255, 0, 0, 80);
+
+static std::map<colliders_t, sf::Color> colorMap = {
+    {COLLIDER_CLEAR, sf::Color::Transparent},
+    {COLLIDER_SOLID, colliderSolidColor},
+    {COLLIDER_DEATH, colliderDeathColor},
+    {COLLIDER_CLIMBABLE, colliderClimbColor},
+    {COLLIDER_GROUND, colliderGroundColor},
+};
 
 void DrawOnScreenSpriteData(const render_context_t& renderContext, const entity_t* drawable)
 {
@@ -149,4 +162,21 @@ void DrawGridMouseHover(const render_context_t& renderContext)
 
     rWindow->draw(mouseRect);
     rWindow->setView(cacheView);
+}
+
+void DrawCollider(const entity_t* entity)
+{
+    if (!entity) {
+        return;
+    }
+
+    sf::FloatRect drawableSize = entity->sprite.getLocalBounds();
+
+    static sf::RectangleShape collider;
+    collider.setFillColor(colorMap[entity->colliderType]);
+    collider.setSize(sf::Vector2f(drawableSize.width, drawableSize.height));
+    collider.setOrigin(entity->sprite.getOrigin());
+    collider.setPosition(entity->sprite.getPosition());
+
+    rWindow->draw(collider);
 }

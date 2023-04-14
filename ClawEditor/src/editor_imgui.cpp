@@ -14,7 +14,7 @@ void DrawImageSet(editor_context_t& editorContext, editorwindow_t& eWindow)
     }
 
     static asset_slot_t* selectedAsset = nullptr;
-    auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_OBJ);
+    auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_ANY);
 
     {
         const ImVec2 childSize(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y);
@@ -133,6 +133,62 @@ void DrawTilePainter(editor_context_t& editorContext, editorwindow_t& eWindow)
             }
 
             count++;
+        }
+    }
+
+    ImGui::End();
+}
+
+void DrawObjectPainter(editor_context_t& editorContext, editorwindow_t& eWindow)
+{
+    if (!ImGui::Begin(eWindow.name.c_str(),
+                      &eWindow.isOpen,
+                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) {
+        ImGui::End();
+        return;
+    }
+
+    const int rowMax = 10;
+    auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_OBJ);
+
+    int count = 1;
+    for (auto& spriteSlot: spriteSheets) {
+        for (auto& frame: spriteSlot->spriteSheet->frames) {
+            const sf::Texture& texture = ResTextureGet(frame.id.c_str());
+
+            const float floatWidth = std::clamp(frame.area.width, 20, 64);
+            const float floatHeight = std::clamp(frame.area.height, 20, 64);
+
+            if (ImGui::ImageButton(texture, sf::Vector2f(floatWidth, floatHeight), 1)) {
+                if (editorContext.mode == EDITOR_MODE_OBJ) {
+                    if (!editorContext.selectedEntity) {
+                        editorContext.selectedEntity = EntityAlloc();
+                    }
+
+                    editorContext.selectedEntity->graphicsID = frame.id;
+                    editorContext.selectedEntity->sprite.setOrigin(frame.pivot);
+                }
+            }
+
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
+                ImGui::SetTooltip("FileName: %s\nFileID: %s\nSize: %dx%d",
+                                  spriteSlot->header.fileName.c_str(),
+                                  frame.id.c_str(),
+                                  frame.area.width,
+                                  frame.area.height);
+            }
+
+            if (count <= rowMax) {
+                ImGui::SameLine();
+            } else {
+                count = 0;
+            }
+
+            count++;
+
+            if (spriteSlot->assetTags & ASSET_TAG_ANIMATION) {
+                break;
+            }
         }
     }
 
