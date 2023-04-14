@@ -1,16 +1,11 @@
 #include "imgui.h"
-#include "SFML/System.hpp"
 
 #include "scene_navigation.h"
 #include "renderer.h"
 #include "input.h"
-#include "editor_imgui.h"
-
-#include "resource_manager.h"
 
 const float zoomFactor = 0.1f;
 const float maxZoom = 2.0f;
-
 float gameZoom = 1.0f;
 
 sf::Cursor cursorHand;
@@ -30,20 +25,6 @@ void SceneNavigationUpdate(render_context_t& renderContext)
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
         return;
-    }
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        sf::Vector2f
-            mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), renderContext.worldView);
-        sf::Vector2u mousePosGrid(mousePosView.x / gridSize, mousePosView.y / gridSize);
-
-        entity_t& entity = renderContext.sceneContext.tileGrid[mousePosGrid.x][mousePosGrid.y];
-        entity = entity_t();
-        entity.logic = "LOGIC_TILES";
-        entity.graphicsID = selectedEntity.graphicsID.c_str();
-        entity.sprite.setOrigin(0, 0);
-        entity.sprite.setTexture(ResTextureGet(selectedEntity.graphicsID.c_str()));
-        entity.sprite.setPosition(mousePosGrid.x * gridSize, mousePosGrid.y * gridSize);
     }
 
     SceneMovement(renderContext);
@@ -76,13 +57,7 @@ void SceneZoom(render_context_t& renderContext)
     }
 
     gameZoom += zoomFactor * GetMouseWheelScroll().delta;
-
-    if (gameZoom >= maxZoom) {
-        gameZoom = maxZoom;
-    } else if (gameZoom <= 1 / maxZoom) {
-        gameZoom = 1 / maxZoom;
-    }
-
+    gameZoom = std::clamp(gameZoom, 1 / maxZoom, maxZoom);
     sf::Vector2f viewSize = sf::Vector2f(rWindow->getSize());
     viewSize.x /= gameZoom;
     viewSize.y /= gameZoom;
