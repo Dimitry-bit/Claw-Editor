@@ -6,7 +6,8 @@
 
 sf::RenderWindow* rWindow;
 
-static void DrawGrid(const entity_t tileGrid[][MAX_GRID_SIZE], int size);
+static void DrawGrid(entity_t* tileGrid[][MAX_GRID_SIZE], int size);
+static void DrawEntities(const std::list<entity_t*>& entities);
 
 void RendererInit(render_context_t& renderContext, int rWidth, int rHeight)
 {
@@ -21,6 +22,7 @@ void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime)
 
     rWindow->setView(renderContext.worldView);
     DrawGrid(renderContext.sceneContext.tileGrid, gridSize);
+    DrawEntities(renderContext.sceneContext.objects);
 
     rWindow->setView(renderContext.uiView);
     UpdateAndRenderEditor(renderContext, deltaTime);
@@ -28,7 +30,7 @@ void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime)
     rWindow->display();
 }
 
-void DrawGrid(const entity_t tileGrid[][MAX_GRID_SIZE], int size)
+void DrawGrid(entity_t* tileGrid[][MAX_GRID_SIZE], int size)
 {
     const sf::Vector2f drawCenter = rWindow->getView().getCenter();
     const sf::Vector2f viewSize = rWindow->getView().getSize();
@@ -47,7 +49,21 @@ void DrawGrid(const entity_t tileGrid[][MAX_GRID_SIZE], int size)
 
     for (int x = fromX; x < toX; ++x) {
         for (int y = fromY; y < toY; ++y) {
-            rWindow->draw(tileGrid[x][y].sprite);
+            if (!tileGrid[x][y])
+                continue;
+
+            rWindow->draw(tileGrid[x][y]->sprite);
         }
+    }
+}
+
+static void DrawEntities(const std::list<entity_t*>& entities)
+{
+    for (auto& entity: entities) {
+        if (!entity || entity->graphicsID.empty()) {
+            continue;
+        }
+
+        rWindow->draw(entity->sprite);
     }
 }

@@ -10,6 +10,7 @@
 #include "editor_constants.h"
 #include "editor_imgui.h"
 #include "editor_debug.h"
+#include "editor_actions.h"
 #include "version.h"
 #include "input.h"
 #include "renderer.h"
@@ -27,7 +28,7 @@ static void EditorUnRegisterWindow(editorwindowCallback_t callback);
 static void EditorInitFont();
 static void DrawMainMenuBar();
 static void DrawStatusBar(editor_context_t& editorContext);
-static void DrawAboutWindow(editorwindow_t& editorwindow);
+static void DrawAboutWindow(editor_context_t& context, editorwindow_t& editorwindow);
 static bool IsHitEntity(editor_context_t& editorContext, const render_context_t& renderContext);
 
 void EditorInit()
@@ -94,12 +95,12 @@ void EditorEvent(sf::Event event)
 
 void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 {
-    static editor_context_t editorContext = {};
+    static editor_context_t editorContext;
 
     IsHitEntity(editorContext, renderContext);
 
     ImGui::SFML::Update(*rWindow, deltaTime);
-    DrawOnScreenSpriteData(renderContext, editorContext.entityHit);
+    DrawOnScreenSpriteData(renderContext, editorContext.editorHit.entity);
     DrawGridMouseHover(renderContext);
     DrawMouseCoordinates(renderContext);
     DrawFrameTime(renderContext, deltaTime.asSeconds());
@@ -111,9 +112,11 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
             if (!eWindow.isOpen || !eWindow.callback)
                 continue;
 
-            eWindow.callback(eWindow);
+            eWindow.callback(editorContext, eWindow);
         }
     }
+
+    EditorActionPlaceEntity(renderContext, editorContext);
 
     ImGui::SFML::Render(*rWindow);
 }
@@ -230,7 +233,7 @@ static void DrawMainMenuBar()
     ImGui::EndMainMenuBar();
 }
 
-static void DrawAboutWindow(editorwindow_t& editorwindow)
+static void DrawAboutWindow(editor_context_t& context, editorwindow_t& editorwindow)
 {
     if (!ImGui::Begin(editorwindow.name.c_str(), &editorwindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
@@ -251,17 +254,27 @@ static bool IsHitEntity(editor_context_t& editorContext, const render_context_t&
         return false;
     }
 
-    sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), renderContext.worldView);
-    sf::Vector2u mousePosGrid(mousePosView.x / gridSize, mousePosView.y / gridSize);
+    const sf::Vector2f mousePosView =
+        rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), renderContext.worldView);
+    editorContext.editorHit.viewPosition = mousePosView;
 
     if (editorContext.mode == EDITOR_MODE_TILE) {
-        if (!(mousePosGrid.x >= 0 && mousePosGrid.x < MAX_GRID_SIZE)) {
+        const sf::Vector2u mousePosGrid(mousePosView.x / gridSize, mousePosView.y / gridSize);
+        editorContext.editorHit.girdPosition = mousePosGrid;
+        editorContext.editorHit.entity = SceneGetTile(renderContext.sceneContext, mousePosGrid);
+    } else if (editorContext.mode == EDITOR_MODE_OBJ) {
+        auto& objects = renderContext.sceneContext.objects;
+        if (objects.empty()) {
             return false;
         }
-        if (!(mousePosGrid.y >= 0 && mousePosGrid.y < MAX_GRID_SIZE)) {
-            return false;
+
+        for (auto& obj: objects) {
+            if (!obj || !obj->sprite.getGlobalBounds().contains(mousePosView)) {
+                continue;
+            }
+
+            editorContext.editorHit.entity = obj;
         }
-        editorContext.entityHit = &renderContext.sceneContext.tileGrid[mousePosGrid.x][mousePosGrid.y];
     }
 
     return true;
@@ -284,6 +297,7 @@ static void DrawStatusBar(editor_context_t& editorContext)
                               0,
                               ImGui::CalcTextSize(ICON_MD_TERRAIN"Tile"))) {
             editorContext.mode = EDITOR_MODE_TILE;
+            editorContext.selectedEntity = nullptr;
         }
 
         if (ImGui::Selectable(ICON_MD_VIEW_IN_AR"Object",
@@ -291,6 +305,7 @@ static void DrawStatusBar(editor_context_t& editorContext)
                               0,
                               ImGui::CalcTextSize(ICON_MD_DATA_OBJECT"Object"))) {
             editorContext.mode = EDITOR_MODE_OBJ;
+            editorContext.selectedEntity = nullptr;
         }
 
         ImGui::EndMenuBar();

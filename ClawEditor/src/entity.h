@@ -39,3 +39,18 @@ struct entity_t {
     sf::Vector2f a;
     sf::Vector2f b;
 };
+
+entity_t* EntityAlloc();
+void EntityDealloc(entity_t* entity);
+
+void EntityCreateTile(entity_t* entity,
+                      const char* graphics,
+                      colliders_t colliderType,
+                      const sf::Vector2f& position,
+                      const sf::Vector2f& origin = sf::Vector2f(0, 0));
+
+void EntityCreateOBJ(entity_t* entity,
+                     const char* graphics,
+                     const char* logic,
+                     const sf::Vector2f& position = sf::Vector2f(0, 0),
+                     const sf::Vector2f& origin = sf::Vector2f(0, 0));

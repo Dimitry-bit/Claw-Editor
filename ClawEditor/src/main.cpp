@@ -54,6 +54,7 @@ int main()
         ClearKeyStatus();
     }
     EditorShutdown();
+    SceneDealloc(sceneContext);
     ResUnloadAll();
 
     return 0;

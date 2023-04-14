@@ -6,9 +6,7 @@
 #include "editor.h"
 #include "renderer.h"
 
-entity_t selectedEntity;
-
-void DrawImageSet(editorwindow_t& eWindow)
+void DrawImageSet(editor_context_t& editorContext, editorwindow_t& eWindow)
 {
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_NoDocking)) {
         ImGui::End();
@@ -91,7 +89,7 @@ void DrawImageSet(editorwindow_t& eWindow)
     ImGui::End();
 }
 
-void DrawTilePainter(editorwindow_t& eWindow)
+void DrawTilePainter(editor_context_t& editorContext, editorwindow_t& eWindow)
 {
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
@@ -109,8 +107,15 @@ void DrawTilePainter(editorwindow_t& eWindow)
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
 
             if (ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1)) {
-                selectedEntity.graphicsID = frame.id.c_str();
-                selectedEntity.sprite.setTexture(texture);
+                if (editorContext.mode == EDITOR_MODE_TILE) {
+                    if (!editorContext.selectedEntity) {
+                        editorContext.selectedEntity = EntityAlloc();
+                    }
+
+                    editorContext.selectedEntity->graphicsID = frame.id;
+                    // NOTE(TONY): Should change when collider implemented
+                    editorContext.selectedEntity->colliderType = COLLIDER_SOLID;
+                }
             }
 
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
