@@ -32,6 +32,8 @@ void EditorInit()
     EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Treasure Properties",
                          DrawTreasurePropertiesWindow, sf::Keyboard::Unknown, true);
+    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Pickup Properties",
+                         DrawPickupPropertiesWindow, sf::Keyboard::Unknown, true);
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 
