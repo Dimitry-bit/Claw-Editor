@@ -11,6 +11,8 @@ const int initWindowWidth = 1280;
 const int initWindowHeight = 720;
 const char* windowName = "Claw Editor";
 
+void ProgramCleanUp();
+
 int main()
 {
     sf::ContextSettings contextSettings;
@@ -49,9 +51,14 @@ int main()
         UpdateAndRenderWindow(renderContext, deltaClock.restart());
         ClearKeyStatus();
     }
+    ProgramCleanUp();
+
+    return 0;
+}
+
+void ProgramCleanUp()
+{
     EditorShutdown();
     SceneDealloc();
     ResUnloadAll();
-
-    return 0;
 }

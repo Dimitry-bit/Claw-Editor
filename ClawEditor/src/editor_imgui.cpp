@@ -11,6 +11,8 @@
 #include "sfml_key_map.h"
 #include "version.h"
 
+extern void ProgramCleanUp();
+
 void DrawMainMenuBar(render_context_t& renderContext)
 {
     auto& editors = editorContext.editorsMap;
@@ -36,7 +38,8 @@ void DrawMainMenuBar(render_context_t& renderContext)
         }
 
         if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
-
+            ProgramCleanUp();
+            exit(0);
         }
 
         ImGui::EndMenu();
