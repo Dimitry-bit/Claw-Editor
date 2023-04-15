@@ -338,7 +338,7 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
     }
 
     static entity_t defaultEntity;
-    const static auto spriteSheets = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("TREASURE"), ASSET_TAG_OBJ);
+    const static auto spriteSheets = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(TREASURE|COIN)"), ASSET_TAG_OBJ);
     const int rowMax = 10;
 
     static bool isInit = false;
@@ -357,14 +357,23 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
     ImGui::SeparatorText("Select Graphics");
 
     int count = 0;
-    for (auto& spriteSlot: spriteSheets) {
+    for (int i = 0; i < spriteSheets.size(); ++i) {
         const sf::Vector2f size(32.0f, 32.0f);
-        if (ImGui::ImageButton(*spriteSlot->texture, size, 1)) {
-            defaultEntity.graphicsID = spriteSlot->header.id;
+        const asset_slot_t& spriteSlot = *spriteSheets.at(i);
+
+        if (ImGui::ImageButton(*spriteSlot.texture, size, 1)) {
+            defaultEntity.graphicsID = spriteSlot.header.id;
         }
 
         if ((++count % rowMax) != 0) {
             ImGui::SameLine();
+        }
+
+        if (spriteSlot.assetTags & ASSET_TAG_ANIMATION) {
+            string AnimationName = spriteSlot.header.fileName;
+            while (spriteSheets.at(++i)->header.fileName == AnimationName) {
+            }
+            --i;
         }
     }
 
