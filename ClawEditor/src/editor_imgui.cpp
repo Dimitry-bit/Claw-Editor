@@ -169,20 +169,20 @@ void DrawTilePainter(editorwindow_t& eWindow)
 {
     eWindow.isOpen = editorContext.mode == EDITOR_MODE_TILE;
 
+    ImGui::SetNextWindowPos(ImVec2(rWindow->getSize()), ImGuiCond_Once, ImVec2(1, 1));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
     }
 
-    DrawPainterBrushSelection();
-    ImGui::Separator();
-
+    static const auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_TILE);
     const float textureScale = 0.6f;
     const int rowMax = 10;
 
-    auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_TILE);
+    DrawPainterBrushSelection();
+    ImGui::Separator();
 
-    int count = 1;
+    int count = 0;
     for (auto& spriteSlot: spriteSheets) {
         for (auto& frame: spriteSlot->spriteSheet->frames) {
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
@@ -207,13 +207,10 @@ void DrawTilePainter(editorwindow_t& eWindow)
                                   frame.area.height);
             }
 
-            if (count <= rowMax) {
+            if ((++count % rowMax) != 0) {
                 ImGui::SameLine();
-            } else {
-                count = 0;
             }
 
-            count++;
         }
     }
 
@@ -224,6 +221,7 @@ void DrawObjectPainter(editorwindow_t& eWindow)
 {
     eWindow.isOpen = editorContext.mode == EDITOR_MODE_OBJ;
 
+    ImGui::SetNextWindowPos(ImVec2(rWindow->getSize().x, 0), ImGuiCond_Once, ImVec2(1, 0));
     if (!ImGui::Begin(eWindow.name.c_str(),
                       &eWindow.isOpen,
                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) {
@@ -231,13 +229,13 @@ void DrawObjectPainter(editorwindow_t& eWindow)
         return;
     }
 
+    const static auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_OBJ);
+    const int rowMax = 10;
+
     DrawPainterBrushSelection();
     ImGui::Separator();
 
-    const int rowMax = 10;
-    auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_OBJ);
-
-    int count = 1;
+    int count = 0;
     for (auto& spriteSlot: spriteSheets) {
         for (auto& frame: spriteSlot->spriteSheet->frames) {
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
@@ -264,13 +262,9 @@ void DrawObjectPainter(editorwindow_t& eWindow)
                                   frame.area.height);
             }
 
-            if (count <= rowMax) {
+            if ((++count % rowMax) != 0) {
                 ImGui::SameLine();
-            } else {
-                count = 0;
             }
-
-            count++;
 
             if (spriteSlot->assetTags & ASSET_TAG_ANIMATION) {
                 break;
@@ -283,13 +277,14 @@ void DrawObjectPainter(editorwindow_t& eWindow)
 
 void DrawImageSet(editorwindow_t& eWindow)
 {
+    ImGui::SetNextWindowPos(ImVec2(rWindow->getSize() / (unsigned int) 2), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_NoDocking)) {
         ImGui::End();
         return;
     }
 
+    const static auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_ANY);
     static asset_slot_t* selectedAsset = nullptr;
-    auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_ANY);
 
     {
         const ImVec2 childSize(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y);
@@ -319,7 +314,7 @@ void DrawImageSet(editorwindow_t& eWindow)
 
         if (selectedAsset) {
             static int selectedFrame = 0;
-            int count = 1;
+            int count = 0;
 
             if (selectedFrame >= selectedAsset->spriteSheet->frameCount) {
                 selectedFrame = 0;
@@ -327,9 +322,7 @@ void DrawImageSet(editorwindow_t& eWindow)
 
             auto& metaData = selectedAsset->spriteSheet->frames[selectedFrame];
             ImGui::PushStyleColor(ImGuiCol_Text, sf::Color(190, 190, 190, 255));
-            ImGui::Text("FileName: %s\n"
-                        "FrameID: %s\n"
-                        "Dimensions: x=%-3d y=%-3d w=%-3d h=%-3d\n",
+            ImGui::Text("FileName: %s\nFrameID: %s\nDimensions: x=%-3d y=%-3d w=%-3d h=%-3d\n",
                         selectedAsset->header.fileName.c_str(),
                         metaData.id.c_str(),
                         metaData.area.left,
@@ -349,13 +342,9 @@ void DrawImageSet(editorwindow_t& eWindow)
                     selectedFrame = i;
                 }
 
-                if (count <= rowMax) {
+                if ((++count % rowMax) != 0) {
                     ImGui::SameLine();
-                } else {
-                    count = 0;
                 }
-
-                count++;
             }
         }
         ImGui::EndChild();
@@ -382,7 +371,6 @@ void DrawAboutWindow(editorwindow_t& eWindow)
 void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
 {
     ImGui::SetNextWindowPos(ImVec2(0, rWindow->getSize().y), ImGuiCond_Once, ImVec2(0, 1));
-
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
@@ -409,7 +397,7 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
 
     int count = 0;
     for (auto& spriteSlot: spriteSheets) {
-        const sf::Vector2f size(32.0, 32.0f);
+        const sf::Vector2f size(32.0f, 32.0f);
         if (ImGui::ImageButton(*spriteSlot->texture, size, 1)) {
             defaultEntity.graphicsID = spriteSlot->header.id;
         }
