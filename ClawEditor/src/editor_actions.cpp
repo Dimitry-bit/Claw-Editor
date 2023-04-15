@@ -5,10 +5,6 @@
 
 void ActionPlaceEntity(render_context_t& renderContext)
 {
-    if (!isMousePressed(sf::Mouse::Left)) {
-        return;
-    }
-
     const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
     const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
     const sf::Vector2u mouseGridPos(mouseViewPos / (float) gridSize);
@@ -29,4 +25,14 @@ void ActionPlaceEntity(render_context_t& renderContext)
                         mouseViewPos, selectedEntity->sprite.getOrigin());
         SceneAddObject(entity);
     }
+}
+
+void ActionDeleteEntity(entity_t** hitEntityPtr)
+{
+    if (!hitEntityPtr || !(*hitEntityPtr)) {
+        return;
+    }
+
+    SceneRemoveEntity(*hitEntityPtr);
+    EntityDealloc(hitEntityPtr);
 }

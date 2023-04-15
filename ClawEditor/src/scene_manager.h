@@ -18,4 +18,5 @@ const std::list<entity_t*>& SceneGetEntities();
 entity_t* SceneGetTile(const sf::Vector2u& pos);
 void SceneAddTile(entity_t* entity, int x, int y);
 void SceneAddObject(entity_t* entity);
+void SceneRemoveEntity(const entity_t* const entity);
 bool SceneIsEntityHit(const sf::Vector2f& point, entity_t** out);

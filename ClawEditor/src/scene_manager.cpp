@@ -78,12 +78,12 @@ void SceneDealloc()
 {
     for (int i = 0; i < MAX_GRID_SIZE; ++i) {
         for (int j = 0; j < MAX_GRID_SIZE; ++j) {
-            EntityDealloc(sceneContext.tileGrid[i][j]);
+            EntityDealloc(&sceneContext.tileGrid[i][j]);
         }
     }
 
     for (auto it = sceneContext.objects.begin(); it != sceneContext.objects.end(); ++it) {
-        EntityDealloc(*it);
+        EntityDealloc(&*it);
     }
     sceneContext.objects.clear();
 
@@ -119,7 +119,7 @@ void SceneAddTile(entity_t* entity, int x, int y)
     }
 
     if (sceneContext.tileGrid[x][y]) {
-        EntityDealloc(sceneContext.tileGrid[x][y]);
+        EntityDealloc(&sceneContext.tileGrid[x][y]);
     }
 
     sceneContext.tileGrid[x][y] = entity;
@@ -131,6 +131,29 @@ void SceneAddObject(entity_t* entity)
     assert(entity);
     sceneContext.objects.push_back(entity);
     printf("[INFO][SceneManager]: Object Placed.\n");
+}
+
+void SceneRemoveEntity(const entity_t* const entity)
+{
+    assert(entity);
+
+    for (int i = 0; i < MAX_GRID_SIZE; ++i) {
+        for (int j = 0; j < MAX_GRID_SIZE; ++j) {
+            if (sceneContext.tileGrid[i][j] == entity) {
+                sceneContext.tileGrid[i][j] = nullptr;
+                printf("[Info][SceneManager]: Entity removed.\n");
+                return;
+            }
+        }
+    }
+
+    for (auto it = sceneContext.objects.begin(); it != sceneContext.objects.end(); ++it) {
+        if (*it == entity) {
+            sceneContext.objects.erase(it);
+            printf("[Info][SceneManager]: Entity removed.\n");
+            return;
+        }
+    }
 }
 
 bool SceneIsEntityHit(const sf::Vector2f& point, entity_t** out)

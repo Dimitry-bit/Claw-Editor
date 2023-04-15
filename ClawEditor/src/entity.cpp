@@ -10,9 +10,12 @@ entity_t* EntityAlloc()
     return entity;
 }
 
-void EntityDealloc(entity_t* entity)
+void EntityDealloc(entity_t** entity)
 {
-    delete entity;
+    assert(entity);
+
+    delete *entity;
+    *entity = nullptr;
 }
 
 void EntityCreateTile(entity_t* entity,

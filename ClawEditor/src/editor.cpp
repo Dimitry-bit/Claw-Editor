@@ -104,7 +104,12 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 
     ImGuiIO& io = ImGui::GetIO();
     if (!(io.WantCaptureMouse || io.WantCaptureKeyboard)) {
-        ActionPlaceEntity(renderContext);
+        if (isMousePressed(sf::Mouse::Left)) {
+            ActionPlaceEntity(renderContext);
+        }
+        if (isKeyPressed(sf::Keyboard::Delete)) {
+            ActionDeleteEntity(&editorContext.editorHit.entity);
+        }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);

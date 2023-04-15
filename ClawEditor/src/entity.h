@@ -47,7 +47,7 @@ struct entity_t {
 };
 
 entity_t* EntityAlloc();
-void EntityDealloc(entity_t* entity);
+void EntityDealloc(entity_t** entity);
 
 void EntityCreateTile(entity_t* entity,
                       const char* graphics,

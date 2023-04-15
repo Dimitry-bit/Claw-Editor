@@ -15,3 +15,4 @@ struct action_t {
 };
 
 void ActionPlaceEntity(render_context_t& renderContext);
+void ActionDeleteEntity(entity_t** hitEntityPtr);
