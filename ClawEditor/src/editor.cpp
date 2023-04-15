@@ -35,7 +35,11 @@ void EditorInit()
     EditorRegisterWindow("Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I, true);
     EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Object Painter", DrawObjectPainter, sf::Keyboard::O, true);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Treasure Properties", DrawTreasurePropertiesWindow, sf::Keyboard::Unknown, true);
+    EditorRegisterWindow("Tools",
+                         ICON_MD_VIEW_IN_AR "Treasure Properties",
+                         DrawTreasurePropertiesWindow,
+                         sf::Keyboard::Unknown,
+                         true);
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 
@@ -121,22 +125,22 @@ static void EditorUpdateImGuiEditors(render_context_t& renderContext)
         return;
     }
 
-    bool (* mouseInputFunction)(sf::Mouse::Button);
-    if (editorContext.brushType == BRUSH_TYPE_WHEE) {
-        mouseInputFunction = sf::Mouse::isButtonPressed;
-    } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
-        mouseInputFunction = isMousePressed;
-    }
-
-    if (editorContext.brushMode == BRUSH_MODE_PAINT) {
-        if (mouseInputFunction(sf::Mouse::Left)) {
-            ActionPlaceEntity(renderContext);
-        }
-    } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
-        if (mouseInputFunction(sf::Mouse::Left)) {
-            ActionDeleteEntity(&editorContext.editorHit.entity);
-        }
-    }
+//    bool (* mouseInputFunction)(sf::Mouse::Button);
+//    if (editorContext.brushType == BRUSH_TYPE_WHEE) {
+//        mouseInputFunction = sf::Mouse::isButtonPressed;
+//    } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
+//        mouseInputFunction = isMousePressed;
+//    }
+//
+//    if (editorContext.brushMode == BRUSH_MODE_PAINT) {
+//        if (mouseInputFunction(sf::Mouse::Left)) {
+//            ActionPlaceEntity(renderContext);
+//        }
+//    } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
+//        if (mouseInputFunction(sf::Mouse::Left)) {
+//            ActionDeleteEntity(&editorContext.editorHit.entity);
+//        }
+//    }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
         const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);

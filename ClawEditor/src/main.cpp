@@ -24,14 +24,11 @@ int main()
                             contextSettings);
     rWindow = &window;
 
-    render_context_t renderContext = {
-    };
-
     SceneAllocAssets();
     SceneInitGrid();
 
     EditorInit();
-    RendererInit(renderContext, initWindowWidth, initWindowHeight);
+    RendererInit(initWindowWidth, initWindowHeight);
     SceneNavigationInit();
 
     sf::Clock deltaClock;
@@ -43,12 +40,12 @@ int main()
             if (event.type == sf::Event::Closed) {
                 rWindow->close();
             } else if (event.type == sf::Event::Resized) {
-                RendererInit(renderContext, event.size.width, event.size.height);
+                RendererInit(event.size.width, event.size.height);
             }
         }
 
-        SceneNavigationUpdate(renderContext);
-        UpdateAndRenderWindow(renderContext, deltaClock.restart());
+        SceneNavigationUpdate(GetRenderContext());
+        UpdateAndRenderWindow(deltaClock.restart());
         ClearKeyStatus();
     }
     ProgramCleanUp();

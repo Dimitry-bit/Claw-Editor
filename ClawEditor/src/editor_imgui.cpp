@@ -412,7 +412,7 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
 
     const ImVec2 addButtonSize(100, 20);
     if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
-
+        editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
     }
 
     ImGui::End();

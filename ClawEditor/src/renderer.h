@@ -20,5 +20,6 @@ struct render_context_t {
     } assetContext;
 };
 
-void RendererInit(render_context_t& renderContext, int rWidth, int rHeight);
-void UpdateAndRenderWindow(render_context_t& renderContext, sf::Time deltaTime);
+void RendererInit(int rWidth, int rHeight);
+void UpdateAndRenderWindow(sf::Time deltaTime);
+render_context_t& GetRenderContext();
