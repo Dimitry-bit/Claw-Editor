@@ -35,6 +35,7 @@ void EditorInit()
     EditorRegisterWindow("Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I, true);
     EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Object Painter", DrawObjectPainter, sf::Keyboard::O, true);
+    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Treasure Properties", DrawTreasurePropertiesWindow, sf::Keyboard::Unknown, true);
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 

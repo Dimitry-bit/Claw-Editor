@@ -378,3 +378,54 @@ void DrawAboutWindow(editorwindow_t& eWindow)
 
     ImGui::End();
 }
+
+void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
+{
+    ImGui::SetNextWindowPos(ImVec2(0, rWindow->getSize().y), ImGuiCond_Once, ImVec2(0, 1));
+
+    if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::End();
+        return;
+    }
+
+    static entity_t defaultEntity;
+    const static auto spriteSheets = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("TREASURE"), ASSET_TAG_OBJ);
+    const int rowMax = 10;
+
+    static bool isInit = false;
+    if (!isInit) {
+        defaultEntity.logic.reserve(50);
+        defaultEntity.logic = "Logic_Treasure";
+        defaultEntity.value = 500;
+        isInit = true;
+    }
+
+    ImGui::SeparatorText("Entity Data");
+    ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
+    ImGui::SliderInt("Gold Value", &defaultEntity.goldValue, 0, 20000);
+    ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
+
+    ImGui::SeparatorText("Select Graphics");
+
+    int count = 0;
+    for (auto& spriteSlot: spriteSheets) {
+        const sf::Vector2f size(32.0, 32.0f);
+        if (ImGui::ImageButton(*spriteSlot->texture, size, 1)) {
+            defaultEntity.graphicsID = spriteSlot->header.id;
+        }
+
+        if ((++count % rowMax) != 0) {
+            ImGui::SameLine();
+        }
+    }
+
+    ImGui::NewLine();
+    ImGui::SeparatorText("");
+
+    const ImVec2 addButtonSize(100, 20);
+    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
+
+    }
+
+    ImGui::End();
+}
