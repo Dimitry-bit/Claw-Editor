@@ -126,6 +126,42 @@ void DrawStatusBar()
     ImGui::End();
 }
 
+void DrawPainterBrushSelection()
+{
+    const ImGuiTreeNodeFlags treeFlags =
+        ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+
+    const ImVec2 size(40, 40);
+    const ImVec2 alignment(0.5f, 0.5f);
+    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, alignment);
+
+    if (ImGui::CollapsingHeader(ICON_MD_TUNE"Brush Modes:", treeFlags)) {
+        if (ImGui::Selectable(ICON_MD_DRAG_INDICATOR"\nNone", editorContext.brushMode == BRUSH_MODE_NONE, 0, size)) {
+            editorContext.brushMode = BRUSH_MODE_NONE;
+        }
+        ImGui::SameLine();
+        if (ImGui::Selectable(ICON_MD_BRUSH"\nPaint", editorContext.brushMode == BRUSH_MODE_PAINT, 0, size)) {
+            editorContext.brushMode = BRUSH_MODE_PAINT;
+        }
+        ImGui::SameLine();
+        if (ImGui::Selectable(ICON_MD_DELETE"\nErase", editorContext.brushMode == BRUSH_MODE_ERASE, 0, size)) {
+            editorContext.brushMode = BRUSH_MODE_ERASE;
+        }
+    }
+
+    if (ImGui::CollapsingHeader(ICON_MD_FORMAT_PAINT"Brush Types:", treeFlags)) {
+        if (ImGui::Selectable(ICON_MD_ADS_CLICK"\nClicky", editorContext.brushType == BRUSH_TYPE_CLICKY, 0, size)) {
+            editorContext.brushType = BRUSH_TYPE_CLICKY;
+        }
+        ImGui::SameLine();
+        if (ImGui::Selectable(ICON_MD_MOUSE"\nWHEEE", editorContext.brushType == BRUSH_TYPE_WHEE, 0, size)) {
+            editorContext.brushType = BRUSH_TYPE_WHEE;
+        }
+    }
+
+    ImGui::PopStyleVar();
+}
+
 void DrawTilePainter(editorwindow_t& eWindow)
 {
     eWindow.isOpen = editorContext.mode == EDITOR_MODE_TILE;
@@ -134,6 +170,9 @@ void DrawTilePainter(editorwindow_t& eWindow)
         ImGui::End();
         return;
     }
+
+    DrawPainterBrushSelection();
+    ImGui::Separator();
 
     const float textureScale = 0.6f;
     const int rowMax = 10;
@@ -188,6 +227,9 @@ void DrawObjectPainter(editorwindow_t& eWindow)
         ImGui::End();
         return;
     }
+
+    DrawPainterBrushSelection();
+    ImGui::Separator();
 
     const int rowMax = 10;
     auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_OBJ);

@@ -20,6 +20,17 @@ enum editor_modes_t {
     EDITOR_MODE_OBJ,
 };
 
+enum painter_brush_types_t {
+    BRUSH_TYPE_CLICKY,
+    BRUSH_TYPE_WHEE,
+};
+
+enum painter_brush_modes {
+    BRUSH_MODE_NONE,
+    BRUSH_MODE_PAINT,
+    BRUSH_MODE_ERASE,
+};
+
 struct editorwindow_t {
     string name;
     bool isOpen;
@@ -34,6 +45,8 @@ struct editor_hit_t {
 struct editor_context_t {
     std::map<string, std::vector<editorwindow_t>> editorsMap;
     editor_modes_t mode;
+    painter_brush_modes brushMode;
+    painter_brush_types_t brushType;
     editor_hit_t editorHit;
     entity_t* selectedEntity;
     std::stack<action_t> undoStack;

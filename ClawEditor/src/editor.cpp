@@ -104,11 +104,27 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 
     ImGuiIO& io = ImGui::GetIO();
     if (!(io.WantCaptureMouse || io.WantCaptureKeyboard)) {
-        if (isMousePressed(sf::Mouse::Left)) {
-            ActionPlaceEntity(renderContext);
-        }
-        if (isKeyPressed(sf::Keyboard::Delete)) {
-            ActionDeleteEntity(&editorContext.editorHit.entity);
+
+        if (editorContext.brushMode == BRUSH_MODE_PAINT) {
+            if (editorContext.brushType == BRUSH_TYPE_WHEE) {
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                    ActionPlaceEntity(renderContext);
+                }
+            } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
+                if (isMousePressed(sf::Mouse::Left)) {
+                    ActionPlaceEntity(renderContext);
+                }
+            }
+        } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
+            if (editorContext.brushType == BRUSH_TYPE_WHEE) {
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                    ActionDeleteEntity(&editorContext.editorHit.entity);
+                }
+            } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
+                if (isMousePressed(sf::Mouse::Left)) {
+                    ActionDeleteEntity(&editorContext.editorHit.entity);
+                }
+            }
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
