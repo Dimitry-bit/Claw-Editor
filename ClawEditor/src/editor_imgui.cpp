@@ -8,7 +8,7 @@
 #include "editor_constants.h"
 #include "resource_manager.h"
 #include "renderer.h"
-#include "key_to_string.h"
+#include "sfml_key_map.h"
 #include "version.h"
 
 void DrawMainMenuBar(render_context_t& renderContext)
@@ -31,8 +31,8 @@ void DrawMainMenuBar(render_context_t& renderContext)
 
         }
 
-        for (auto& eWindow: editors.at("Files")) {
-            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
+        for (auto& eWindow: editors["Files"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
 
         if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
@@ -49,8 +49,8 @@ void DrawMainMenuBar(render_context_t& renderContext)
         if (ImGui::MenuItem(ICON_MD_TERRAIN "Tile Properties")) {
 
         }
-        for (auto& eWindow: editors.at("Edit")) {
-            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
+        for (auto& eWindow: editors["Edit"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -60,9 +60,11 @@ void DrawMainMenuBar(render_context_t& renderContext)
         if (ImGui::MenuItem(ICON_MD_GRID_3X3 "Show Guides")) {
 
         }
+
         ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties", nullptr, &renderContext.isDrawCollider);
-        for (auto& eWindow: editors.at("View")) {
-            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
+
+        for (auto& eWindow: editors["View"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -73,16 +75,16 @@ void DrawMainMenuBar(render_context_t& renderContext)
 
         }
 
-        for (auto& eWindow: editors.at("Tools")) {
-            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
+        for (auto& eWindow: editors["Tools"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
     }
 
     if (ImGui::BeginMenu(ICON_MD_HELP "Help")) {
-        for (auto& eWindow: editors.at("Help")) {
-            ImGui::MenuItem(eWindow.name.c_str(), keyToString[eWindow.shortcutKey], &eWindow.isOpen);
+        for (auto& eWindow: editors["Help"]) {
+            ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
