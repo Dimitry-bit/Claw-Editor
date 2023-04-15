@@ -184,7 +184,7 @@ void DrawTilePainter(editorwindow_t& eWindow)
     static bool isInit = false;
     if (!isInit) {
         defaultEntity.logic.reserve(50);
-        defaultEntity.logic = "Logic_Treasure";
+        defaultEntity.logic = "Logic_Tile";
         isInit = true;
     }
 
