@@ -16,6 +16,8 @@
 editor_context_t editorContext;
 
 static void EditorInitFont();
+static void EditorUpdateInWorldEditors(const render_context_t& renderContext, sf::Time deltaTime);
+static void EditorUpdateImGuiEditors(render_context_t& renderContext);
 static void EditorUpdateWindows();
 static void EditorRegisterWindow(const char* tab,
                                  const char* name,
@@ -89,6 +91,14 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 {
     ImGui::SFML::Update(*rWindow, deltaTime);
 
+    EditorUpdateInWorldEditors(renderContext, deltaTime);
+    EditorUpdateImGuiEditors(renderContext);
+
+    ImGui::SFML::Render(*rWindow);
+}
+
+static void EditorUpdateInWorldEditors(const render_context_t& renderContext, sf::Time deltaTime)
+{
     DrawOnScreenSpriteData(renderContext, editorContext.editorHit.entity);
 
     if (editorContext.mode == EDITOR_MODE_TILE) {
@@ -97,44 +107,41 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
 
     DrawMouseCoordinates(renderContext);
     DrawFrameTime(renderContext, deltaTime.asSeconds());
+}
+
+static void EditorUpdateImGuiEditors(render_context_t& renderContext)
+{
     DrawMainMenuBar(renderContext);
     DrawStatusBar();
-
     EditorUpdateWindows();
 
     ImGuiIO& io = ImGui::GetIO();
-    if (!(io.WantCaptureMouse || io.WantCaptureKeyboard)) {
+    if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
+        return;
+    }
 
-        if (editorContext.brushMode == BRUSH_MODE_PAINT) {
-            if (editorContext.brushType == BRUSH_TYPE_WHEE) {
-                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                    ActionPlaceEntity(renderContext);
-                }
-            } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
-                if (isMousePressed(sf::Mouse::Left)) {
-                    ActionPlaceEntity(renderContext);
-                }
-            }
-        } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
-            if (editorContext.brushType == BRUSH_TYPE_WHEE) {
-                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                    ActionDeleteEntity(&editorContext.editorHit.entity);
-                }
-            } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
-                if (isMousePressed(sf::Mouse::Left)) {
-                    ActionDeleteEntity(&editorContext.editorHit.entity);
-                }
-            }
+    bool (* mouseInputFunction)(sf::Mouse::Button);
+    if (editorContext.brushType == BRUSH_TYPE_WHEE) {
+        mouseInputFunction = sf::Mouse::isButtonPressed;
+    } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
+        mouseInputFunction = isMousePressed;
+    }
+
+    if (editorContext.brushMode == BRUSH_MODE_PAINT) {
+        if (mouseInputFunction(sf::Mouse::Left)) {
+            ActionPlaceEntity(renderContext);
         }
-
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-            const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
-            SceneIsEntityHit(mouseViewPos, &editorContext.editorHit.entity);
+    } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
+        if (mouseInputFunction(sf::Mouse::Left)) {
+            ActionDeleteEntity(&editorContext.editorHit.entity);
         }
     }
 
-    ImGui::SFML::Render(*rWindow);
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
+        const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
+        SceneIsEntityHit(mouseViewPos, &editorContext.editorHit.entity);
+    }
 }
 
 static void EditorUpdateWindows()
