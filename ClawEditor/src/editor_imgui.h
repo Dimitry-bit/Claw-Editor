@@ -1,6 +1,6 @@
 #pragma once
 
-#include "editor.h"
+#include "editor_internal.h"
 
 void DrawMainMenuBar(render_context_t& renderContext);
 void DrawStatusBar();

@@ -1,5 +1,5 @@
 #include "editor_actions.h"
-#include "editor.h"
+#include "editor_internal.h"
 #include "scene_manager.h"
 #include "input.h"
 
@@ -25,11 +25,8 @@ void ActionPlaceEntity(render_context_t& renderContext)
         SceneAddTile(entity, mouseGridPos.x, mouseGridPos.y);
     } else if (editorContext.mode == EDITOR_MODE_OBJ) {
         entity_t* entity = EntityAlloc();
-        EntityCreateOBJ(entity,
-                        selectedEntity->graphicsID.c_str(),
-                        selectedEntity->logic.c_str(),
-                        mouseViewPos,
-                        selectedEntity->sprite.getOrigin());
+        EntityCreateOBJ(entity, selectedEntity->graphicsID.c_str(), selectedEntity->logic.c_str(),
+                        mouseViewPos, selectedEntity->sprite.getOrigin());
         SceneAddObject(entity);
     }
 }

@@ -5,7 +5,7 @@
 #include "fonts/IconsMaterialDesign.h"
 
 #include "editor.h"
-#include "editor_constants.h"
+#include "editor_internal.h"
 #include "editor_imgui.h"
 #include "editor_debug.h"
 #include "editor_actions.h"
@@ -15,14 +15,13 @@
 
 editor_context_t editorContext;
 
+static void EditorInitFont();
+static void EditorUpdateWindows();
 static void EditorRegisterWindow(const char* tab,
                                  const char* name,
                                  editorwindowCallback_t callback,
                                  sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown,
                                  bool defaultState = false);
-
-static void EditorInitFont();
-static void EditorUpdateWindows();
 
 void EditorInit()
 {

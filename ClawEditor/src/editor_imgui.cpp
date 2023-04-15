@@ -3,8 +3,8 @@
 #include "imgui-SFML.h"
 #include "fonts/IconsMaterialDesign.h"
 
-#include "editor.h"
 #include "editor_imgui.h"
+#include "editor_internal.h"
 #include "editor_constants.h"
 #include "resource_manager.h"
 #include "renderer.h"
@@ -126,6 +126,8 @@ void DrawStatusBar()
 
 void DrawTilePainter(editorwindow_t& eWindow)
 {
+    eWindow.isOpen = editorContext.mode == EDITOR_MODE_TILE;
+
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
         return;
@@ -176,6 +178,8 @@ void DrawTilePainter(editorwindow_t& eWindow)
 
 void DrawObjectPainter(editorwindow_t& eWindow)
 {
+    eWindow.isOpen = editorContext.mode == EDITOR_MODE_OBJ;
+
     if (!ImGui::Begin(eWindow.name.c_str(),
                       &eWindow.isOpen,
                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) {
