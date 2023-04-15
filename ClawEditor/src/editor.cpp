@@ -55,8 +55,7 @@ static void EditorInitFont()
     iconsConfig.GlyphMinAdvanceX = iconFontSize;
     iconsConfig.GlyphOffset.y += 5.0f;
     iconsConfig.GlyphExtraSpacing.x += 5.0f;
-    io.Fonts->AddFontFromFileTTF("../resources/fonts/" FONT_ICON_FILE_NAME_MD,
-                                 iconFontSize, &iconsConfig, iconsRanges);
+    io.Fonts->AddFontFromFileTTF("../resources/fonts/" FONT_ICON_FILE_NAME_MD, iconFontSize, &iconsConfig, iconsRanges);
     io.Fonts->Build();
     ImGui::SFML::UpdateFontTexture();
 }

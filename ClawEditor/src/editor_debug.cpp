@@ -89,9 +89,7 @@ void DrawMouseCoordinates(const render_context_t& renderContext)
     sf::Vector2i mousePosScreen = sf::Mouse::getPosition();
     sf::Vector2i mousePosWindow = sf::Mouse::getPosition(*rWindow);
     sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), renderContext.worldView);
-    sf::Vector2u mousePosGrid;
-    mousePosGrid.x = mousePosView.x / gridSize;
-    mousePosGrid.y = mousePosView.y / gridSize;
+    sf::Vector2u mousePosGrid(mousePosView / (float) gridSize);
 
     static bool isInit = false;
     static sf::Text text;
@@ -148,7 +146,7 @@ void DrawGridMouseHover(const render_context_t& renderContext)
     rWindow->setView(renderContext.worldView);
 
     sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
-    sf::Vector2u mousePosGrid(mousePosView.x / gridSize, mousePosView.y / gridSize);
+    sf::Vector2u mousePosGrid(mousePosView / (float) gridSize);
 
     static bool isInit = false;
     static sf::RectangleShape mouseRect(sf::Vector2f(gridSize, gridSize));
@@ -158,7 +156,7 @@ void DrawGridMouseHover(const render_context_t& renderContext)
         mouseRect.setOutlineThickness(1.0f);
         isInit = true;
     }
-    mouseRect.setPosition(mousePosGrid.x * gridSize, mousePosGrid.y * gridSize);
+    mouseRect.setPosition(sf::Vector2f(mousePosGrid * (unsigned int) gridSize));
 
     rWindow->draw(mouseRect);
     rWindow->setView(cacheView);
