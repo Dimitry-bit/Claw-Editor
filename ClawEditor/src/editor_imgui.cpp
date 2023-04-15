@@ -9,6 +9,7 @@
 #include "resource_manager.h"
 #include "renderer.h"
 #include "sfml_key_map.h"
+#include "input.h"
 #include "version.h"
 
 extern void ProgramCleanUp();
@@ -175,12 +176,36 @@ void DrawTilePainter(editorwindow_t& eWindow)
         return;
     }
 
+    static entity_t defaultEntity;
     static const auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_TILE);
     const float textureScale = 0.6f;
     const int rowMax = 10;
 
+    static bool isInit = false;
+    if (!isInit) {
+        defaultEntity.logic.reserve(50);
+        defaultEntity.logic = "Logic_Treasure";
+        isInit = true;
+    }
+
     DrawPainterBrushSelection();
     ImGui::Separator();
+
+    ImGui::SeparatorText("Entity Data");
+    ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
+
+    ImGui::RadioButton("Collider_CLEAR", (int*) &defaultEntity.colliderType, COLLIDER_CLEAR);
+    ImGui::SameLine();
+    ImGui::RadioButton("Collider_GROUND", (int*) &defaultEntity.colliderType, COLLIDER_GROUND);
+    ImGui::SameLine();
+    ImGui::RadioButton("Collider_CLIMBABLE", (int*) &defaultEntity.colliderType, COLLIDER_CLIMBABLE);
+    ImGui::RadioButton("Collider_DEATH", (int*) &defaultEntity.colliderType, COLLIDER_DEATH);
+    ImGui::SameLine();
+    ImGui::RadioButton("Collider_SOLID", (int*) &defaultEntity.colliderType, COLLIDER_SOLID);
+
+    ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
+
+    ImGui::SeparatorText("Select Graphics");
 
     int count = 0;
     for (auto& spriteSlot: spriteSheets) {
@@ -188,86 +213,37 @@ void DrawTilePainter(editorwindow_t& eWindow)
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
 
             if (ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1)) {
-                if (editorContext.mode == EDITOR_MODE_TILE) {
-                    if (!editorContext.selectedEntity) {
-                        editorContext.selectedEntity = EntityAlloc();
-                    }
-
-                    editorContext.selectedEntity->graphicsID = frame.id;
-                    // NOTE(TONY): Should change when collider implemented
-                    editorContext.selectedEntity->colliderType = COLLIDER_SOLID;
-                }
+                defaultEntity.graphicsID = frame.id;
             }
 
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
                 ImGui::SetTooltip("FileName: %s\nFileID: %s\nSize: %dx%d",
-                                  spriteSlot->header.fileName.c_str(),
-                                  frame.id.c_str(),
-                                  frame.area.width,
-                                  frame.area.height);
+                                  spriteSlot->header.fileName.c_str(), frame.id.c_str(),
+                                  frame.area.width, frame.area.height);
             }
 
             if ((++count % rowMax) != 0) {
                 ImGui::SameLine();
             }
-
         }
     }
 
-    ImGui::End();
-}
+    ImGuiIO& io = ImGui::GetIO();
+    if (!(io.WantCaptureMouse || io.WantCaptureKeyboard)) {
+        bool (* mouseInputFunction)(sf::Mouse::Button);
+        if (editorContext.brushType == BRUSH_TYPE_WHEE) {
+            mouseInputFunction = sf::Mouse::isButtonPressed;
+        } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
+            mouseInputFunction = isMousePressed;
+        }
 
-void DrawObjectPainter(editorwindow_t& eWindow)
-{
-    eWindow.isOpen = editorContext.mode == EDITOR_MODE_OBJ;
-
-    ImGui::SetNextWindowPos(ImVec2(rWindow->getSize().x, 0), ImGuiCond_Once, ImVec2(1, 0));
-    if (!ImGui::Begin(eWindow.name.c_str(),
-                      &eWindow.isOpen,
-                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) {
-        ImGui::End();
-        return;
-    }
-
-    const static auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_OBJ);
-    const int rowMax = 10;
-
-    DrawPainterBrushSelection();
-    ImGui::Separator();
-
-    int count = 0;
-    for (auto& spriteSlot: spriteSheets) {
-        for (auto& frame: spriteSlot->spriteSheet->frames) {
-            const sf::Texture& texture = ResTextureGet(frame.id.c_str());
-
-            const float floatWidth = std::clamp(frame.area.width, 20, 64);
-            const float floatHeight = std::clamp(frame.area.height, 20, 64);
-
-            if (ImGui::ImageButton(texture, sf::Vector2f(floatWidth, floatHeight), 1)) {
-                if (editorContext.mode == EDITOR_MODE_OBJ) {
-                    if (!editorContext.selectedEntity) {
-                        editorContext.selectedEntity = EntityAlloc();
-                    }
-
-                    editorContext.selectedEntity->graphicsID = frame.id;
-                    editorContext.selectedEntity->sprite.setOrigin(frame.pivot);
-                }
+        if (editorContext.brushMode == BRUSH_MODE_PAINT) {
+            if (mouseInputFunction(sf::Mouse::Left) && !defaultEntity.graphicsID.empty()) {
+                editorContext.editorHit.entity = ActionPlaceTile(defaultEntity);
             }
-
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
-                ImGui::SetTooltip("FileName: %s\nFileID: %s\nSize: %dx%d",
-                                  spriteSlot->header.fileName.c_str(),
-                                  frame.id.c_str(),
-                                  frame.area.width,
-                                  frame.area.height);
-            }
-
-            if ((++count % rowMax) != 0) {
-                ImGui::SameLine();
-            }
-
-            if (spriteSlot->assetTags & ASSET_TAG_ANIMATION) {
-                break;
+        } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
+            if (mouseInputFunction(sf::Mouse::Left)) {
+                ActionDeleteEntity(&editorContext.editorHit.entity);
             }
         }
     }
@@ -353,21 +329,6 @@ void DrawImageSet(editorwindow_t& eWindow)
     ImGui::End();
 }
 
-void DrawAboutWindow(editorwindow_t& eWindow)
-{
-    if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::End();
-        return;
-    }
-
-    ImGui::Text(ABOUT_MESSAGE);
-    ImGui::Separator();
-    ImGui::Text("Author: " ABOUT_AUTHOR_MESSAGE);
-    ImGui::Text("Version: " VERSION);
-
-    ImGui::End();
-}
-
 void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
 {
     ImGui::SetNextWindowPos(ImVec2(0, rWindow->getSize().y), ImGuiCond_Once, ImVec2(0, 1));
@@ -414,6 +375,21 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
     if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
         editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
     }
+
+    ImGui::End();
+}
+
+void DrawAboutWindow(editorwindow_t& eWindow)
+{
+    if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::Text(ABOUT_MESSAGE);
+    ImGui::Separator();
+    ImGui::Text("Author: " ABOUT_AUTHOR_MESSAGE);
+    ImGui::Text("Version: " VERSION);
 
     ImGui::End();
 }

@@ -13,7 +13,7 @@ enum entity_tags_t {
 };
 
 enum colliders_t {
-    COLLIDER_CLEAR,
+    COLLIDER_CLEAR = 0,
     COLLIDER_SOLID,
     COLLIDER_DEATH,
     COLLIDER_CLIMBABLE,
