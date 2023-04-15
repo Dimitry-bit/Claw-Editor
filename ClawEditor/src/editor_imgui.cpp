@@ -13,6 +13,36 @@
 #include "version.h"
 
 extern void ProgramCleanUp();
+static bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selectedTex, int rowSize = 10);
+
+bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selectedTex, int rowSize)
+{
+    bool status = false;
+    int count = 0;
+
+    for (int i = 0; i < assets.size(); ++i) {
+        const sf::Vector2f size(32.0f, 32.0f);
+        const asset_slot_t& spriteSlot = *assets.at(i);
+
+        if (ImGui::ImageButton(*spriteSlot.texture, size, 1)) {
+            selectedTex = spriteSlot.header.id;
+            status = true;
+        }
+
+        if ((++count % rowSize) != 0) {
+            ImGui::SameLine();
+        }
+
+        if (spriteSlot.assetTags & ASSET_TAG_ANIMATION) {
+            string AnimationName = spriteSlot.header.fileName;
+            while (assets.at(++i)->header.fileName == AnimationName) {
+            }
+            --i;
+        }
+    }
+
+    return status;
+}
 
 void DrawMainMenuBar(render_context_t& renderContext)
 {
@@ -177,7 +207,7 @@ void DrawTilePainter(editorwindow_t& eWindow)
     }
 
     static entity_t defaultEntity;
-    static const auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_TILE);
+    static const auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_TILE);
     const float textureScale = 0.6f;
     const int rowMax = 10;
 
@@ -259,7 +289,7 @@ void DrawImageSet(editorwindow_t& eWindow)
         return;
     }
 
-    const static auto& spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_ANY);
+    const static auto spriteSheets = ResGetAllAssetSlots(ASSET_SPRITESHEET, ASSET_TAG_ANY);
     static asset_slot_t* selectedAsset = nullptr;
 
     {
@@ -339,7 +369,6 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
 
     static entity_t defaultEntity;
     const static auto spriteSheets = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(TREASURE|COIN)"), ASSET_TAG_OBJ);
-    const int rowMax = 10;
 
     static bool isInit = false;
     if (!isInit) {
@@ -355,31 +384,10 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
     ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
-
-    int count = 0;
-    for (int i = 0; i < spriteSheets.size(); ++i) {
-        const sf::Vector2f size(32.0f, 32.0f);
-        const asset_slot_t& spriteSlot = *spriteSheets.at(i);
-
-        if (ImGui::ImageButton(*spriteSlot.texture, size, 1)) {
-            defaultEntity.graphicsID = spriteSlot.header.id;
-        }
-
-        if ((++count % rowMax) != 0) {
-            ImGui::SameLine();
-        }
-
-        if (spriteSlot.assetTags & ASSET_TAG_ANIMATION) {
-            string AnimationName = spriteSlot.header.fileName;
-            while (spriteSheets.at(++i)->header.fileName == AnimationName) {
-            }
-            --i;
-        }
-    }
+    ImGuiTextureGrid(spriteSheets, defaultEntity.graphicsID);
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
-
     const ImVec2 addButtonSize(100, 20);
     if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
         editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
@@ -397,9 +405,8 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
     }
 
     static entity_t defaultEntity;
-    static const auto
-        spriteSheets = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(HEALTH|AMMO|LIVE|LIFE)"), ASSET_TAG_PICKUP);
-    const int rowMax = 10;
+    static const auto spriteSheets =
+        ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(HEALTH|AMMO|LIVE|LIFE)"), ASSET_TAG_PICKUP);
 
     static bool isInit = false;
     if (!isInit) {
@@ -425,31 +432,10 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
     ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
-
-    int count = 0;
-    for (int i = 0; i < spriteSheets.size(); ++i) {
-        const sf::Vector2f size(32.0f, 32.0f);
-        const asset_slot_t& spriteSlot = *spriteSheets.at(i);
-
-        if (ImGui::ImageButton(*spriteSlot.texture, size, 1)) {
-            defaultEntity.graphicsID = spriteSlot.header.id;
-        }
-
-        if ((++count % rowMax) != 0) {
-            ImGui::SameLine();
-        }
-
-        if (spriteSlot.assetTags & ASSET_TAG_ANIMATION) {
-            string AnimationName = spriteSlot.header.fileName;
-            while (spriteSheets.at(++i)->header.fileName == AnimationName) {
-            }
-            --i;
-        }
-    }
+    ImGuiTextureGrid(spriteSheets, defaultEntity.graphicsID);
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
-
     const ImVec2 addButtonSize(100, 20);
     if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
         editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
