@@ -7,6 +7,11 @@ using std::string;
 
 struct entity_t;
 
+enum entity_tags_t {
+    ENTITY_OBJ,
+    ENTITY_TILE,
+};
+
 enum colliders_t {
     COLLIDER_CLEAR,
     COLLIDER_SOLID,

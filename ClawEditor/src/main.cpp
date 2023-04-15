@@ -22,15 +22,11 @@ int main()
                             contextSettings);
     rWindow = &window;
 
-    scene_context_t sceneContext;
     render_context_t renderContext = {
-        .sceneContext  = sceneContext,
-        .assetContext {
-        }
     };
 
     SceneAllocAssets();
-    SceneInitGrid(sceneContext);
+    SceneInitGrid();
 
     EditorInit();
     RendererInit(renderContext, initWindowWidth, initWindowHeight);
@@ -54,7 +50,7 @@ int main()
         ClearKeyStatus();
     }
     EditorShutdown();
-    SceneDealloc(sceneContext);
+    SceneDealloc();
     ResUnloadAll();
 
     return 0;

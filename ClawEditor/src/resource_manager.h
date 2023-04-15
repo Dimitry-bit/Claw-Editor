@@ -45,16 +45,6 @@ struct asset_slot_t {
     };
 };
 
-struct asset_context_t {
-    asset_types_t pushType;
-
-    std::map<std::string, asset_slot_t> fontTBL;
-    std::map<std::string, asset_slot_t> imageTBL;
-    std::map<std::string, asset_slot_t> textureTBL;
-    std::map<std::string, asset_slot_t> soundTBL;
-    std::map<std::string, asset_slot_t> spriteSheetTBL;
-};
-
 void AssetPopType();
 void AssetPushType(asset_types_t type);
 

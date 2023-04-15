@@ -3,32 +3,33 @@
 #include "scene_manager.h"
 #include "input.h"
 
-void EditorActionPlaceEntity(render_context_t& renderContext, editor_context_t& editorContext)
+void ActionPlaceEntity(render_context_t& renderContext)
 {
     if (!isMousePressed(sf::Mouse::Left)) {
         return;
     }
 
-    const entity_t* selectedEntity = editorContext.selectedEntity;
+    const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
+    const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
+    const sf::Vector2u mouseGridPos(mouseViewPos / (float) gridSize);
 
+    const entity_t* selectedEntity = editorContext.selectedEntity;
     if (!selectedEntity) {
         return;
     }
 
     if (editorContext.mode == EDITOR_MODE_TILE) {
-        const sf::Vector2u& mousePosGrid = editorContext.editorHit.girdPosition;
-        sf::Vector2f pos(mousePosGrid.x * gridSize, mousePosGrid.y * gridSize);
+        sf::Vector2f pos(mouseGridPos.x * gridSize, mouseGridPos.y * gridSize);
         entity_t* entity = EntityAlloc();
         EntityCreateTile(entity, selectedEntity->graphicsID.c_str(), selectedEntity->colliderType, pos);
-        SceneAddTile(renderContext.sceneContext, entity, mousePosGrid.x, mousePosGrid.y);
+        SceneAddTile(entity, mouseGridPos.x, mouseGridPos.y);
     } else if (editorContext.mode == EDITOR_MODE_OBJ) {
         entity_t* entity = EntityAlloc();
-        const sf::Vector2f& pos = editorContext.editorHit.viewPosition;
         EntityCreateOBJ(entity,
                         selectedEntity->graphicsID.c_str(),
                         selectedEntity->logic.c_str(),
-                        pos,
+                        mouseViewPos,
                         selectedEntity->sprite.getOrigin());
-        SceneAddObject(renderContext.sceneContext, entity);
+        SceneAddObject(entity);
     }
 }

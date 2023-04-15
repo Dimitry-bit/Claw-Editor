@@ -7,6 +7,16 @@
 
 using std::string;
 
+struct asset_context_t {
+    asset_types_t pushType;
+
+    std::map<std::string, asset_slot_t> fontTBL;
+    std::map<std::string, asset_slot_t> imageTBL;
+    std::map<std::string, asset_slot_t> textureTBL;
+    std::map<std::string, asset_slot_t> soundTBL;
+    std::map<std::string, asset_slot_t> spriteSheetTBL;
+};
+
 const string parentDir("../resources/");
 const string fontDir(parentDir + "fonts/");
 const string imageDir(parentDir + "images/");
@@ -18,7 +28,7 @@ const sf::Texture defaultTexture = sf::Texture();
 const sf::Image defaultImage = sf::Image();
 const sf::SoundBuffer defaultSoundBuffer = sf::SoundBuffer();
 
-asset_context_t assetContext;
+static asset_context_t assetContext;
 
 template <typename Type>
 bool LoadFromFile(asset_slot_t& slot, const char* dir, const char* identifier);

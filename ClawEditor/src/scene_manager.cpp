@@ -2,6 +2,14 @@
 
 #include "scene_manager.h"
 #include "resource_manager.h"
+#include "entity.h"
+
+struct scene_context_t {
+    std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_GRID_SIZE> tileGrid;
+    std::list<entity_t*> objects;
+};
+
+static scene_context_t sceneContext;
 
 const int gridSize = 64;
 
@@ -33,29 +41,27 @@ void SceneAllocAssets()
     ResTextureLoadFromSpriteSheet("objects/TORSHSTAND.png", ASSET_TAG_OBJ | ASSET_TAG_ANIMATION);
 }
 
-void SceneInitGrid(scene_context_t& sceneContext)
+void SceneInitGrid()
 {
-    memset(sceneContext.tileGrid, 0, sizeof(sceneContext.tileGrid));
-
     entity_t* tile = EntityAlloc();
     EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_SOLID, sf::Vector2f(0, 0));
-    SceneAddTile(sceneContext, tile, 0, 0);
+    SceneAddTile(tile, 0, 0);
 
     tile = EntityAlloc();
     EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_CLIMBABLE, sf::Vector2f(64, 0));
-    SceneAddTile(sceneContext, tile, 1, 0);
+    SceneAddTile(tile, 1, 0);
 
     tile = EntityAlloc();
     EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_DEATH, sf::Vector2f(2 * 64, 0));
-    SceneAddTile(sceneContext, tile, 2, 0);
+    SceneAddTile(tile, 2, 0);
 
     tile = EntityAlloc();
     EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_GROUND, sf::Vector2f(3 * 64, 0));
-    SceneAddTile(sceneContext, tile, 3, 0);
+    SceneAddTile(tile, 3, 0);
 
     tile = EntityAlloc();
     EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_CLEAR, sf::Vector2f(4 * 64, 0));
-    SceneAddTile(sceneContext, tile, 4, 0);
+    SceneAddTile(tile, 4, 0);
 
     entity_t* coin = EntityAlloc();
     const spriteSheet_t& spriteSheet = ResSpriteSheetGet("objects/COINS.png");
@@ -65,32 +71,10 @@ void SceneInitGrid(scene_context_t& sceneContext)
     coin->sprite.setTextureRect(spriteSheet.frames[0].area);
     coin->sprite.setOrigin(spriteSheet.frames[0].pivot);
     coin->sprite.setPosition(gridSize * 2, gridSize * 2);
-    SceneAddObject(sceneContext, coin);
+    SceneAddObject(coin);
 }
 
-void SceneAddTile(scene_context_t& sceneContext, entity_t* entity, int x, int y)
-{
-    if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
-        printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
-        return;
-    }
-
-    if (sceneContext.tileGrid[x][y]) {
-        EntityDealloc(sceneContext.tileGrid[x][y]);
-    }
-
-    sceneContext.tileGrid[x][y] = entity;
-    printf("[INFO][SceneManager]: Tile Placed.\n");
-}
-
-void SceneAddObject(scene_context_t& sceneContext, entity_t* entity)
-{
-    assert(entity);
-    sceneContext.objects.push_back(entity);
-    printf("[INFO][SceneManager]: Object Placed.\n");
-}
-
-void SceneDealloc(scene_context_t& sceneContext)
+void SceneDealloc()
 {
     for (int i = 0; i < MAX_GRID_SIZE; ++i) {
         for (int j = 0; j < MAX_GRID_SIZE; ++j) {
@@ -106,11 +90,66 @@ void SceneDealloc(scene_context_t& sceneContext)
     printf("[INFO][SceneManager]: Scene deallocated successfully.\n");
 }
 
-entity_t* SceneGetTile(scene_context_t& sceneContext, const sf::Vector2u& pos)
+const std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_GRID_SIZE>& SceneGetTileGrid()
 {
-    if (!(pos.x >= 0 && pos.x < MAX_GRID_SIZE) || !(pos.y >= 0 && pos.y < MAX_GRID_SIZE)) {
+    return sceneContext.tileGrid;
+}
+
+const std::list<entity_t*>& SceneGetEntities()
+{
+    return sceneContext.objects;
+}
+
+entity_t* SceneGetTile(const sf::Vector2u& pos)
+{
+    const sf::Vector2u gridPos = pos / (unsigned int) gridSize;
+
+    if (!(gridPos.x >= 0 && gridPos.x < MAX_GRID_SIZE) || !(gridPos.y >= 0 && gridPos.y < MAX_GRID_SIZE)) {
         return nullptr;
     }
 
-    return sceneContext.tileGrid[pos.x][pos.y];
+    return sceneContext.tileGrid[gridPos.x][gridPos.y];
+}
+
+void SceneAddTile(entity_t* entity, int x, int y)
+{
+    if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
+        printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
+        return;
+    }
+
+    if (sceneContext.tileGrid[x][y]) {
+        EntityDealloc(sceneContext.tileGrid[x][y]);
+    }
+
+    sceneContext.tileGrid[x][y] = entity;
+    printf("[INFO][SceneManager]: Tile Placed.\n");
+}
+
+void SceneAddObject(entity_t* entity)
+{
+    assert(entity);
+    sceneContext.objects.push_back(entity);
+    printf("[INFO][SceneManager]: Object Placed.\n");
+}
+
+bool SceneIsEntityHit(const sf::Vector2f& point, entity_t** out)
+{
+    if (!out) {
+        return false;
+    }
+
+    *out = SceneGetTile(sf::Vector2u(point));
+    if (*out) {
+        return true;
+    }
+
+    for (auto& entity: sceneContext.objects) {
+        if (entity && entity->sprite.getGlobalBounds().contains(point)) {
+            *out = entity;
+            return true;
+        }
+    }
+
+    return false;
 }
