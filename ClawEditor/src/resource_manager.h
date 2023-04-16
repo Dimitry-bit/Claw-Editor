@@ -14,6 +14,7 @@ enum asset_tags_t {
     ASSET_TAG_TREASURE = 1 << 2,
     ASSET_TAG_PICKUP = 1 << 3,
     ASSET_TAG_ANIMATION = 1 << 4,
+    ASSET_TAG_EYECANDY = 1 << 5,
 };
 
 enum asset_types_t {

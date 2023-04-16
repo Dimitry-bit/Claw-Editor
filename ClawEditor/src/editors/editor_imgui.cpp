@@ -22,6 +22,7 @@ void EditorInitImGuiWindows()
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Pickup Properties", DrawPickupPropertiesWindow);
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties", DrawTimeObjPropertiesWindow);
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Checkpoint Properties", DrawCheckpointPropertiesWindow);
+    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Eyecandy Properties", DrawEyeCandyPropertiesWindow);
 
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }

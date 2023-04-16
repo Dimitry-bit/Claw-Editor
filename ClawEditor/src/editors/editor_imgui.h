@@ -14,3 +14,4 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow);
 void DrawPickupPropertiesWindow(editorwindow_t& eWindow);
 void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow);
 void DrawCheckpointPropertiesWindow(editorwindow_t& eWindow);
+void DrawEyeCandyPropertiesWindow(editorwindow_t& eWindow);
