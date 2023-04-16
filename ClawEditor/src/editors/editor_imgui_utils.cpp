@@ -7,6 +7,10 @@
 
 bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selectedTex, int rowSize)
 {
+    if (assets.empty()) {
+        return false;
+    }
+
     bool status = false;
     int count = 0;
 
@@ -26,8 +30,8 @@ bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selected
         }
 
         if (spriteSlot.assetTags & ASSET_TAG_ANIMATION) {
-            string AnimationName = spriteSlot.header.fileName;
-            while (assets.at(++i)->header.fileName == AnimationName) {
+            string animID = spriteSlot.header.fileName;
+            for (; i < assets.size() && assets.at(i)->header.fileName == animID; ++i) {
             }
             --i;
         }
