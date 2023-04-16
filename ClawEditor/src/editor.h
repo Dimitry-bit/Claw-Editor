@@ -2,7 +2,6 @@
 
 #include "SFML/System.hpp"
 
-#include "entity.h"
 #include "renderer.h"
 
 void EditorInit();

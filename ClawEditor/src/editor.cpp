@@ -1,13 +1,12 @@
-#include <iostream>
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui-SFML.h"
 #include "fonts/IconsMaterialDesign.h"
 
 #include "editor.h"
-#include "editor_internal.h"
-#include "editor_imgui.h"
-#include "editor_debug.h"
+#include "editors/editor_internal.h"
+#include "editors/editor_imgui.h"
+#include "editors/editor_inworld.h"
 #include "input.h"
 #include "renderer.h"
 #include "resource_manager.h"
@@ -15,11 +14,6 @@
 editor_context_t editorContext;
 
 static void EditorInitFont();
-static void EditorUpdateInWorldEditors(const render_context_t& renderContext, sf::Time deltaTime);
-static void EditorUpdateImGuiEditors(render_context_t& renderContext);
-static void EditorUpdateWindows();
-static void EditorRegisterWindow(const char* tab, const char* name, editorwindowCallback_t callback,
-                                 sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown, bool defaultState = false);
 
 void EditorInit()
 {
@@ -28,15 +22,7 @@ void EditorInit()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
 
-    EditorRegisterWindow("Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I, true);
-    EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T, true);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Treasure Properties",
-                         DrawTreasurePropertiesWindow, sf::Keyboard::Unknown, true);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Pickup Properties",
-                         DrawPickupPropertiesWindow, sf::Keyboard::Unknown, true);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties",
-                         DrawTimeObjPropertiesWindow, sf::Keyboard::Unknown, true);
-    EditorRegisterWindow("Help", "About", DrawAboutWindow);
+    EditorInitImGuiWindows();
 }
 
 static void EditorInitFont()
@@ -89,7 +75,6 @@ void EditorEvent(sf::Event event)
             }
         }
     }
-
 }
 
 void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
@@ -100,60 +85,4 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
     EditorUpdateImGuiEditors(renderContext);
 
     ImGui::SFML::Render(*rWindow);
-}
-
-static void EditorUpdateInWorldEditors(const render_context_t& renderContext, sf::Time deltaTime)
-{
-    DrawOnScreenSpriteData(renderContext, editorContext.editorHit.entity);
-
-    if (editorContext.mode == EDITOR_MODE_TILE) {
-        DrawGridMouseHover(renderContext);
-    }
-
-    DrawMouseCoordinates(renderContext);
-    DrawFrameTime(renderContext, deltaTime.asSeconds());
-}
-
-static void EditorUpdateImGuiEditors(render_context_t& renderContext)
-{
-    DrawMainMenuBar(renderContext);
-    DrawStatusBar();
-    EditorUpdateWindows();
-
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-        return;
-    }
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-        const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
-        SceneIsEntityHit(mouseViewPos, &editorContext.editorHit.entity);
-    }
-}
-
-static void EditorUpdateWindows()
-{
-    for (auto& tabEditors: editorContext.editorsMap) {
-        for (auto& eWindow: tabEditors.second) {
-            if (!eWindow.isOpen || !eWindow.callback)
-                continue;
-
-            eWindow.callback(eWindow);
-        }
-    }
-}
-
-static void EditorRegisterWindow(const char* tab, const char* identifier, editorwindowCallback_t callback,
-                                 sf::Keyboard::Key shortcutKey, bool defaultState)
-{
-    editorwindow_t eWindow{
-        .name = identifier,
-        .isOpen = defaultState,
-        .shortcutKey = shortcutKey,
-        .callback = callback
-    };
-
-    editorContext.editorsMap[tab].push_back(eWindow);
-    printf("[INFO][Editor]: \"%s\" -> \"%s\" window registered successfully.\n", tab, identifier);
 }

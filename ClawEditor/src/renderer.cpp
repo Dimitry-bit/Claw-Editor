@@ -3,7 +3,7 @@
 
 #include "renderer.h"
 #include "editor.h"
-#include "editor_debug.h"
+#include "editors/editor_inworld.h"
 
 sf::RenderWindow* rWindow;
 

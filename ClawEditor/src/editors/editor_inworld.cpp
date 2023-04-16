@@ -1,22 +1,12 @@
 #include <sstream>
 #include "SFML/Graphics.hpp"
 
-#include "editor_debug.h"
+#include "editor_inworld.h"
+#include "editor_internal.h"
 #include "editor_constants.h"
 #include "entity.h"
 #include "renderer.h"
 #include "resource_manager.h"
-
-const static sf::Color frameTimeColor = sf::Color::White;
-const static sf::Color mouseCoordinatesColor = sf::Color::White;
-const static sf::Color spriteDebugColor = sf::Color::Yellow;
-const static sf::Color colliderColor = sf::Color::Red;
-const static sf::Color hoverFillColor = sf::Color(255, 255, 255, 35);
-const static sf::Color hoverFrameColor = sf::Color(255, 255, 255, 255);
-const static sf::Color colliderSolidColor = sf::Color(0, 0, 255, 80);
-const static sf::Color colliderGroundColor = sf::Color(0, 255, 0, 80);
-const static sf::Color colliderClimbColor = sf::Color(255, 255, 0, 80);
-const static sf::Color colliderDeathColor = sf::Color(255, 0, 0, 80);
 
 static std::map<colliders_t, sf::Color> colorMap = {
     {COLLIDER_CLEAR, sf::Color::Transparent},
@@ -25,6 +15,18 @@ static std::map<colliders_t, sf::Color> colorMap = {
     {COLLIDER_CLIMBABLE, colliderClimbColor},
     {COLLIDER_GROUND, colliderGroundColor},
 };
+
+void EditorUpdateInWorldEditors(const render_context_t& renderContext, sf::Time deltaTime)
+{
+    DrawOnScreenSpriteData(renderContext, editorContext.editorHit.entity);
+
+    if (editorContext.mode == EDITOR_MODE_TILE) {
+        DrawGridMouseHover(renderContext);
+    }
+
+    DrawMouseCoordinates(renderContext);
+    DrawFrameTime(renderContext, deltaTime.asSeconds());
+}
 
 void DrawOnScreenSpriteData(const render_context_t& renderContext, const entity_t* drawable)
 {
