@@ -224,14 +224,16 @@ void DrawTilePainter(editorwindow_t& eWindow)
     ImGui::SeparatorText("Entity Data");
     ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
 
-    ImGui::RadioButton("Collider_CLEAR", (int*) &defaultEntity.colliderType, COLLIDER_CLEAR);
+    int colliderIndex = static_cast<int>(defaultEntity.colliderType);
+    ImGui::RadioButton("Collider_CLEAR", &colliderIndex, COLLIDER_CLEAR);
     ImGui::SameLine();
-    ImGui::RadioButton("Collider_GROUND", (int*) &defaultEntity.colliderType, COLLIDER_GROUND);
+    ImGui::RadioButton("Collider_GROUND", &colliderIndex, COLLIDER_GROUND);
     ImGui::SameLine();
-    ImGui::RadioButton("Collider_CLIMBABLE", (int*) &defaultEntity.colliderType, COLLIDER_CLIMBABLE);
-    ImGui::RadioButton("Collider_DEATH", (int*) &defaultEntity.colliderType, COLLIDER_DEATH);
+    ImGui::RadioButton("Collider_CLIMBABLE", &colliderIndex, COLLIDER_CLIMBABLE);
+    ImGui::RadioButton("Collider_DEATH", &colliderIndex, COLLIDER_DEATH);
     ImGui::SameLine();
-    ImGui::RadioButton("Collider_SOLID", (int*) &defaultEntity.colliderType, COLLIDER_SOLID);
+    ImGui::RadioButton("Collider_SOLID", &colliderIndex, COLLIDER_SOLID);
+    defaultEntity.colliderType = static_cast<colliders_t>(colliderIndex);
 
     ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
 
