@@ -12,8 +12,11 @@
 #include "input.h"
 #include "version.h"
 
+static const sf::Color colorLightGrey(sf::Color(190, 190, 190, 255));
+
 extern void ProgramCleanUp();
 static bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selectedTex, int rowSize = 10);
+static void DrawAssetTooltip(const asset_header_t& header, const frameMetadata_t* frameMetadata = nullptr);
 
 bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selectedTex, int rowSize)
 {
@@ -28,6 +31,8 @@ bool ImGuiTextureGrid(const std::vector<asset_slot_t*>& assets, string& selected
             selectedTex = spriteSlot.header.id;
             status = true;
         }
+
+        DrawAssetTooltip(spriteSlot.header);
 
         if ((++count % rowSize) != 0) {
             ImGui::SameLine();
@@ -160,6 +165,25 @@ void DrawStatusBar()
     ImGui::End();
 }
 
+static void DrawAssetTooltip(const asset_header_t& header, const frameMetadata_t* frameMetadata)
+{
+    if (!ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
+        return;
+    }
+
+    ImGui::PushStyleColor(ImGuiCol_Text, colorLightGrey);
+    if (frameMetadata) {
+        ImGui::SetTooltip("FileName: %s\nFrameID: %s\nSize: %dx%d",
+                          header.fileName.c_str(),
+                          frameMetadata->id.c_str(),
+                          frameMetadata->area.width,
+                          frameMetadata->area.height);
+    } else {
+        ImGui::SetTooltip("FileName: %s\nFileID: %s\n", header.fileName.c_str(), header.id.c_str());
+    }
+    ImGui::PopStyleColor();
+}
+
 void DrawPainterBrushSelection()
 {
     const ImGuiTreeNodeFlags treeFlags =
@@ -248,11 +272,7 @@ void DrawTilePainter(editorwindow_t& eWindow)
                 defaultEntity.graphicsID = frame.id;
             }
 
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayShort)) {
-                ImGui::SetTooltip("FileName: %s\nFileID: %s\nSize: %dx%d",
-                                  spriteSlot->header.fileName.c_str(), frame.id.c_str(),
-                                  frame.area.width, frame.area.height);
-            }
+            DrawAssetTooltip(spriteSlot->header, &frame);
 
             if ((++count % rowMax) != 0) {
                 ImGui::SameLine();
@@ -307,7 +327,7 @@ void DrawImageSet(editorwindow_t& eWindow)
             }
 
             ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_Text, sf::Color(190, 190, 190, 255));
+            ImGui::PushStyleColor(ImGuiCol_Text, colorLightGrey);
             ImGui::Text("%s\n%d images\n", spriteSlot->header.fileName.c_str(), spriteSheet->frameCount);
             ImGui::PopStyleColor();
         }
@@ -329,7 +349,7 @@ void DrawImageSet(editorwindow_t& eWindow)
             }
 
             auto& metaData = selectedAsset->spriteSheet->frames[selectedFrame];
-            ImGui::PushStyleColor(ImGuiCol_Text, sf::Color(190, 190, 190, 255));
+            ImGui::PushStyleColor(ImGuiCol_Text, colorLightGrey);
             ImGui::Text("FileName: %s\nFrameID: %s\nDimensions: x=%-3d y=%-3d w=%-3d h=%-3d\n",
                         selectedAsset->header.fileName.c_str(),
                         metaData.id.c_str(),
