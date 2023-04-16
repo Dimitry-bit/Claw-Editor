@@ -34,6 +34,8 @@ void EditorInit()
                          DrawTreasurePropertiesWindow, sf::Keyboard::Unknown, true);
     EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Pickup Properties",
                          DrawPickupPropertiesWindow, sf::Keyboard::Unknown, true);
+    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties",
+                         DrawTimeObjPropertiesWindow, sf::Keyboard::Unknown, true);
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 

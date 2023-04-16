@@ -12,6 +12,11 @@ enum entity_tags_t {
     ENTITY_TILE,
 };
 
+enum entity_timed_logic_t {
+    ENTITY_TIMED_LOGIC_ELEVATOR,
+    ENTITY_TIMED_LOGIC_CRUMBLINGPEG,
+};
+
 enum colliders_t {
     COLLIDER_CLEAR = 0,
     COLLIDER_SOLID,
@@ -21,9 +26,9 @@ enum colliders_t {
 };
 
 struct entity_t {
-    string logic;
-
     string graphicsID;
+    string logic;
+    entity_timed_logic_t timedLogic;
 
     colliders_t colliderType;
     std::vector<entity_t> drops;
@@ -31,19 +36,18 @@ struct entity_t {
     string soundFile;
     bool isLoop;
 
-    int drawLayer;
-
     sf::Sprite sprite;
     sf::RectangleShape rectangle;
 
+    sf::Vector2f a;
+    sf::Vector2f b;
+
+    int drawLayer;
     union {
         int value;
         int healthValue;
         int goldValue;
     };
-
-    sf::Vector2f a;
-    sf::Vector2f b;
 };
 
 entity_t* EntityAlloc();
