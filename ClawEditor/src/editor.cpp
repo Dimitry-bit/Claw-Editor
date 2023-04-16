@@ -71,6 +71,10 @@ void EditorEvent(sf::Event event)
 {
     ImGui::SFML::ProcessEvent(event);
 
+    if (ImGui::IsAnyItemFocused() || ImGui::IsAnyItemActive()) {
+        return;
+    }
+
     if (event.type != sf::Event::KeyPressed) {
         return;
     }
