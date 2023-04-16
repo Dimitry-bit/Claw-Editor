@@ -35,6 +35,7 @@ struct entity_t {
 
     string soundFile;
     bool isLoop;
+    bool keepInventory;
 
     sf::Sprite sprite;
     sf::RectangleShape rectangle;
