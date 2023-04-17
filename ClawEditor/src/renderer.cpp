@@ -56,10 +56,14 @@ static void DrawGrid(const std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_
             if (!tileGrid[x][y])
                 continue;
 
-            rWindow->draw(tileGrid[x][y]->sprite);
+            if (tileGrid[x][y]->render.type == RENDER_SPRITE) {
+                rWindow->draw(tileGrid[x][y]->render.sprite);
+            } else if (tileGrid[x][y]->render.type == RENDER_RECTANGLE) {
+                rWindow->draw(tileGrid[x][y]->render.rectangleShape);
+            }
 
             if (renderContext.isDrawCollider) {
-                DrawCollider(tileGrid[x][y]);
+                DrawTileInfo(tileGrid[x][y]);
             }
         }
     }
@@ -68,11 +72,17 @@ static void DrawGrid(const std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_
 static void DrawEntities(const std::list<entity_t*>& entities)
 {
     for (auto& entity: entities) {
-        if (!entity || entity->graphicsID.empty()) {
+        if (entity->render.type == RENDER_NONE) {
             continue;
         }
 
-        rWindow->draw(entity->sprite);
+        if (entity->render.type == RENDER_SPRITE) {
+            rWindow->draw(entity->render.sprite);
+        } else if (entity->render.type == RENDER_RECTANGLE) {
+            rWindow->draw(entity->render.rectangleShape);
+        } else if (entity->render.type == RENDER_CIRCLE) {
+            rWindow->draw(entity->render.circleShape);
+        }
     }
 }
 

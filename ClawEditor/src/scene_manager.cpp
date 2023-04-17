@@ -47,35 +47,6 @@ void SceneAllocAssets()
 
 void SceneInitGrid()
 {
-    entity_t* tile = EntityAlloc();
-    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_SOLID, sf::Vector2f(0, 0));
-    SceneAddTile(tile, 0, 0);
-
-    tile = EntityAlloc();
-    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_CLIMBABLE, sf::Vector2f(64, 0));
-    SceneAddTile(tile, 1, 0);
-
-    tile = EntityAlloc();
-    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_DEATH, sf::Vector2f(2 * 64, 0));
-    SceneAddTile(tile, 2, 0);
-
-    tile = EntityAlloc();
-    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_GROUND, sf::Vector2f(3 * 64, 0));
-    SceneAddTile(tile, 3, 0);
-
-    tile = EntityAlloc();
-    EntityCreateTile(tile, "tilesets/LEVEL1_TILES/ACTION/012", COLLIDER_CLEAR, sf::Vector2f(4 * 64, 0));
-    SceneAddTile(tile, 4, 0);
-
-    entity_t* coin = EntityAlloc();
-    const spriteSheet_t& spriteSheet = ResSpriteSheetGet("objects/COINS.png");
-    coin->graphicsID = spriteSheet.frames[0].id;
-    coin->logic = "LOGIC_PICKUP";
-    coin->sprite.setTexture(spriteSheet.texture);
-    coin->sprite.setTextureRect(spriteSheet.frames[0].area);
-    coin->sprite.setOrigin(spriteSheet.frames[0].pivot);
-    coin->sprite.setPosition(gridSize * 2, gridSize * 2);
-    SceneAddObject(coin);
 }
 
 void SceneDealloc()
@@ -172,7 +143,7 @@ bool SceneIsEntityHit(const sf::Vector2f& point, entity_t** out)
     }
 
     for (auto& entity: sceneContext.objects) {
-        if (entity && entity->sprite.getGlobalBounds().contains(point)) {
+        if (entity && entity->render.sprite.getGlobalBounds().contains(point)) {
             *out = entity;
             return true;
         }

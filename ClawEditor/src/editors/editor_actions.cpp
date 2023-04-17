@@ -14,7 +14,10 @@ entity_t* ActionPlaceTile(const entity_t& entity)
     entity_t* e = EntityAlloc();
     assert(e);
 
-    EntityCreateTile(e, entity.graphicsID.c_str(), entity.colliderType, pos);
+    EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
+    EntitySet(e, C_TILE, &entity.tile);
+    e->render.sprite.setPosition(pos);
+
     SceneAddTile(e, mouseGridPos.x, mouseGridPos.y);
 
     return e;
@@ -26,9 +29,12 @@ entity_t* ActionPlaceEntity(const entity_t& entity, sf::Vector2f origin)
     assert(e);
 
     *e = entity;
-
+    EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
+    EntitySet(e, entity.type, &entity.tile);
     sf::Vector2f pos = GetRenderContext().worldView.getCenter();
-    EntityCreateOBJ(e, entity.graphicsID.c_str(), entity.logic.c_str(), pos, origin);
+    e->render.sprite.setPosition(pos);
+    e->render.sprite.setOrigin(origin);
+
     SceneAddObject(e);
 
     return e;
@@ -52,9 +58,10 @@ void ActionEntityMove(entity_t& entity)
     const sf::Vector2f pos(mouseGridPos.x * gridSize, mouseGridPos.y * gridSize);
     const bool isSnapToGrid = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
 
+    // TODO(Tony): Add Renders
     if (isSnapToGrid) {
-        entity.sprite.setPosition(pos);
+        entity.render.sprite.setPosition(pos);
     } else {
-        entity.sprite.setPosition(mouseViewPos);
+        entity.render.sprite.setPosition(mouseViewPos);
     }
 }

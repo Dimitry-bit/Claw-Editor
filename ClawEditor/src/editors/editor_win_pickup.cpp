@@ -18,9 +18,13 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
 
     static bool isInit = false;
     if (!isInit) {
+        EntityInit(&defaultEntity, "Logic_Treasure", RENDER_SPRITE);
         defaultEntity.logic.reserve(50);
-        defaultEntity.logic = "Logic_Pickup";
-        defaultEntity.value = 500;
+        c_pickup_t c = {
+            .type = PICKUP_NONE,
+            .value = 0,
+        };
+        EntitySet(&defaultEntity, C_PICKUP, &c);
         isInit = true;
     }
 
@@ -34,18 +38,25 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
     ImGui::SeparatorText("Entity Data");
     if (ImGui::Combo("Predefined Logic", &logicIndex, pickupLogics, IM_ARRAYSIZE(pickupLogics))) {
         defaultEntity.logic = pickupLogics[logicIndex];
+        if (defaultEntity.logic == "Logic_Health") {
+            defaultEntity.pickup.type = PICKUP_HEALTH;
+        } else if (defaultEntity.logic == "Logic_Ammo") {
+            defaultEntity.pickup.type = PICKUP_AMMO;
+        } else {
+            defaultEntity.pickup.type = PICKUP_NONE;
+        }
     }
     ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
-    ImGui::SliderInt("Pickup Value", &defaultEntity.value, 0, 20000);
-    ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
+    ImGui::SliderInt("Pickup Value", &defaultEntity.pickup.value, 0, 20000);
+    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
-    ImGuiTextureGrid(spriteSheets, defaultEntity.graphicsID);
+    ImGuiTextureGrid(spriteSheets, defaultEntity.render.graphicsID);
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
-    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
+    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.render.graphicsID.empty()) {
         editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
     }
 

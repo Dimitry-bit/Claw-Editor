@@ -17,58 +17,70 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
     static entity_t defaultEntity;
     static bool isInit = false;
     if (!isInit) {
-        defaultEntity.logic = "Logic_Elevator";
-        defaultEntity.graphicsID = assetElevator.at(0)->header.id;
-        defaultEntity.timedLogic = ENTITY_TIMED_LOGIC_ELEVATOR;
-        defaultEntity.a = sf::Vector2f(0, 0);
-        defaultEntity.b = sf::Vector2f(0, 0);
-        defaultEntity.value = 0;
+        EntityInit(&defaultEntity, "Logic_Elevator", RENDER_SPRITE, assetElevator.at(0)->header.id);
+        c_platform_t c = {
+            .type = PLATFORM_ELEVATOR,
+            .a = sf::Vector2f(0, 0),
+            .b = sf::Vector2f(0, 0),
+            .time = 0,
+        };
+        EntitySet(&defaultEntity, C_PLATFORM, &c);
         isInit = true;
     }
 
     ImGui::SeparatorText("Entity Data");
     string radioName("Logic_Elevator");
-    if (ImGui::RadioButton(radioName.c_str(), defaultEntity.timedLogic == ENTITY_TIMED_LOGIC_ELEVATOR)) {
-        defaultEntity.timedLogic = ENTITY_TIMED_LOGIC_ELEVATOR;
+    if (ImGui::RadioButton(radioName.c_str(), defaultEntity.platform.type == PLATFORM_ELEVATOR)) {
+        defaultEntity.platform.type = PLATFORM_ELEVATOR;
         defaultEntity.logic = radioName;
-        defaultEntity.graphicsID = assetElevator.at(0)->header.id;
+        defaultEntity.render.graphicsID = assetElevator.at(0)->header.id;
     }
     radioName = "Logic_Crumblingpeg";
-    if (ImGui::RadioButton(radioName.c_str(), defaultEntity.timedLogic == ENTITY_TIMED_LOGIC_CRUMBLINGPEG)) {
-        defaultEntity.timedLogic = ENTITY_TIMED_LOGIC_CRUMBLINGPEG;
+    if (ImGui::RadioButton(radioName.c_str(), defaultEntity.platform.type == PLATFORM_CRUMBLINGPEG)) {
+        defaultEntity.platform.type = PLATFORM_CRUMBLINGPEG;
         defaultEntity.logic = radioName;
-        defaultEntity.graphicsID = assetCrumbingpeg.at(0)->header.id;
+        defaultEntity.render.graphicsID = assetCrumbingpeg.at(0)->header.id;
     }
 
-    ImGui::InputInt("Time(ms)", &defaultEntity.value);
+    ImGui::InputInt("Time(ms)", &defaultEntity.platform.time);
 
-    ImGui::BeginDisabled(defaultEntity.timedLogic != ENTITY_TIMED_LOGIC_ELEVATOR);
-    ImGui::DragFloat2("To", &defaultEntity.a.x);
+    ImGui::BeginDisabled(defaultEntity.platform.type != PLATFORM_ELEVATOR);
+    ImGui::DragFloat2("To", &defaultEntity.platform.a.x);
     ImGui::EndDisabled();
-    ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
+    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
 
-    if (defaultEntity.timedLogic == ENTITY_TIMED_LOGIC_ELEVATOR && defaultEntity.a != sf::Vector2f(0, 0)) {
+    if (defaultEntity.platform.type == PLATFORM_ELEVATOR && defaultEntity.platform.a != sf::Vector2f(0, 0)) {
         const render_context_t& renderContext = GetRenderContext();
         const sf::View cacheView = rWindow->getView();
         entity_t a, b;
-        a.sprite.setColor(sf::Color(255, 255, 255, 150));
-        b.sprite.setColor(sf::Color(255, 255, 255, 100));
+        EntityInit(&a, "Logic_Elevator", RENDER_SPRITE, assetElevator.at(0)->header.id);
+        EntityInit(&b, "Logic_Elevator", RENDER_SPRITE, assetElevator.at(0)->header.id);
+        c_platform_t c = {
+            .type = PLATFORM_ELEVATOR,
+            .a = sf::Vector2f(0, 0),
+            .b = sf::Vector2f(0, 0),
+            .time = 0,
+        };
+        EntitySet(&a, C_PLATFORM, &c);
+        EntitySet(&b, C_PLATFORM, &c);
+        a.render.sprite.setColor(sf::Color(255, 255, 255, 150));
+        b.render.sprite.setColor(sf::Color(255, 255, 255, 100));
 
         rWindow->setView(renderContext.worldView);
         const sf::Vector2f aPos = renderContext.worldView.getCenter();
-        const sf::Vector2f bPos = aPos + defaultEntity.a;
-        EntityCreateOBJ(&a, defaultEntity.graphicsID.c_str(), defaultEntity.logic.c_str(), aPos);
-        EntityCreateOBJ(&b, defaultEntity.graphicsID.c_str(), defaultEntity.logic.c_str(), bPos);
+        const sf::Vector2f bPos = aPos + defaultEntity.platform.a;
+        a.render.sprite.setPosition(aPos);
+        b.render.sprite.setPosition(bPos);
 
-        rWindow->draw(a.sprite);
-        rWindow->draw(b.sprite);
+        rWindow->draw(a.render.sprite);
+        rWindow->draw(b.render.sprite);
         rWindow->setView(cacheView);
     }
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
-    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.graphicsID.empty()) {
+    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.render.graphicsID.empty()) {
         editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
     }
 

@@ -62,8 +62,11 @@ void DrawTilePainter(editorwindow_t& eWindow)
 
     static bool isInit = false;
     if (!isInit) {
-        defaultEntity.logic.reserve(50);
-        defaultEntity.logic = "Logic_Tile";
+        EntityInit(&defaultEntity, "Logic_Tile", RENDER_SPRITE);
+        c_tile_t c = {
+            .type = TILE_CLEAR,
+        };
+        EntitySet(&defaultEntity, C_TILE, &c);
         isInit = true;
     }
 
@@ -73,18 +76,18 @@ void DrawTilePainter(editorwindow_t& eWindow)
     ImGui::SeparatorText("Entity Data");
     ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
 
-    int colliderIndex = static_cast<int>(defaultEntity.colliderType);
-    ImGui::RadioButton("Collider_CLEAR", &colliderIndex, COLLIDER_CLEAR);
+    int tileTypeIndex = static_cast<int>(defaultEntity.tile.type);
+    ImGui::RadioButton("Collider_CLEAR", &tileTypeIndex, TILE_CLEAR);
     ImGui::SameLine();
-    ImGui::RadioButton("Collider_GROUND", &colliderIndex, COLLIDER_GROUND);
+    ImGui::RadioButton("Collider_GROUND", &tileTypeIndex, TILE_GROUND);
     ImGui::SameLine();
-    ImGui::RadioButton("Collider_CLIMBABLE", &colliderIndex, COLLIDER_CLIMBABLE);
-    ImGui::RadioButton("Collider_DEATH", &colliderIndex, COLLIDER_DEATH);
+    ImGui::RadioButton("Collider_CLIMBABLE", &tileTypeIndex, TILE_CLIMBABLE);
+    ImGui::RadioButton("Collider_DEATH", &tileTypeIndex, TILE_DEATH);
     ImGui::SameLine();
-    ImGui::RadioButton("Collider_SOLID", &colliderIndex, COLLIDER_SOLID);
-    defaultEntity.colliderType = static_cast<colliders_t>(colliderIndex);
+    ImGui::RadioButton("Collider_SOLID", &tileTypeIndex, TILE_SOLID);
+    defaultEntity.tile.type = static_cast<tile_types_t>(tileTypeIndex);
 
-    ImGui::Text("Graphics: %s", defaultEntity.graphicsID.c_str());
+    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
 
@@ -94,7 +97,7 @@ void DrawTilePainter(editorwindow_t& eWindow)
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
 
             if (ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1)) {
-                defaultEntity.graphicsID = frame.id;
+                defaultEntity.render.graphicsID = frame.id;
             }
 
             DrawAssetTooltip(spriteSlot->header, &frame);
@@ -115,7 +118,7 @@ void DrawTilePainter(editorwindow_t& eWindow)
         }
 
         if (editorContext.brushMode == BRUSH_MODE_PAINT) {
-            if (mouseInputFunction(sf::Mouse::Left) && !defaultEntity.graphicsID.empty()) {
+            if (mouseInputFunction(sf::Mouse::Left) && !defaultEntity.render.graphicsID.empty()) {
                 editorContext.editorHit.entity = ActionPlaceTile(defaultEntity);
             }
         } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
