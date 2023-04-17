@@ -43,3 +43,18 @@ void ActionDeleteEntity(entity_t** hitEntityPtr)
     SceneRemoveEntity(*hitEntityPtr);
     EntityDealloc(hitEntityPtr);
 }
+
+void ActionEntityMove(entity_t& entity)
+{
+    const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
+    const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, GetRenderContext().worldView);
+    const sf::Vector2u mouseGridPos(mouseViewPos / (float) gridSize);
+    const sf::Vector2f pos(mouseGridPos.x * gridSize, mouseGridPos.y * gridSize);
+    const bool isSnapToGrid = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+
+    if (isSnapToGrid) {
+        entity.sprite.setPosition(pos);
+    } else {
+        entity.sprite.setPosition(mouseViewPos);
+    }
+}

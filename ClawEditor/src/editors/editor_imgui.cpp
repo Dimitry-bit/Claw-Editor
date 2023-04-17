@@ -6,6 +6,7 @@
 #include "editor_constants.h"
 #include "editor_imgui.h"
 #include "renderer.h"
+#include "input.h"
 #include "sfml_key_map.h"
 #include "version.h"
 
@@ -27,21 +28,37 @@ void EditorInitImGuiWindows()
     EditorRegisterWindow("Help", "About", DrawAboutWindow);
 }
 
-void EditorUpdateImGuiEditors(render_context_t& renderContext)
+void EditorUpdateImGuiEditors(render_context_t& renderContext, sf::Time deltaTime)
 {
     DrawMainMenuBar(renderContext);
     DrawStatusBar();
     EditorUpdateWindows();
+
+    static float pressTimer = 0;
+    static float dragTimer = 0;
+    pressTimer += deltaTime.asSeconds();
 
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
         return;
     }
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-        const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
-        SceneIsEntityHit(mouseViewPos, &editorContext.editorHit.entity);
+    if (isMousePressed(sf::Mouse::Left)) {
+        if (pressTimer <= 0.5f) {
+            const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
+            const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
+            SceneIsEntityHit(mouseViewPos, &editorContext.editorHit.entity);
+        } else {
+            editorContext.editorHit.entity = nullptr;
+        }
+        pressTimer = 0;
+    }
+
+    if (editorContext.mode == EDITOR_MODE_OBJ) {
+        (sf::Mouse::isButtonPressed(sf::Mouse::Left)) ? dragTimer += deltaTime.asSeconds() : dragTimer = 0;
+        if (dragTimer >= 0.1f && editorContext.editorHit.entity) {
+            ActionEntityMove(*editorContext.editorHit.entity);
+        }
     }
 }
 

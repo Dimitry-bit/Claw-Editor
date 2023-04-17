@@ -82,7 +82,7 @@ void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
     ImGui::SFML::Update(*rWindow, deltaTime);
 
     EditorUpdateInWorldEditors(renderContext, deltaTime);
-    EditorUpdateImGuiEditors(renderContext);
+    EditorUpdateImGuiEditors(renderContext, deltaTime);
 
     ImGui::SFML::Render(*rWindow);
 }

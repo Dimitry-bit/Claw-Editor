@@ -17,3 +17,4 @@ struct action_t {
 entity_t* ActionPlaceTile(const entity_t& entity);
 entity_t* ActionPlaceEntity(const entity_t& entity, sf::Vector2f origin = sf::Vector2f(0, 0));
 void ActionDeleteEntity(entity_t** hitEntityPtr);
+void ActionEntityMove(entity_t& entity);
