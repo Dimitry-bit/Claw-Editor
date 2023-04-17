@@ -28,8 +28,16 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
         isInit = true;
     }
 
+    entity_t* editedEntityRef = &defaultEntity;
+    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_PICKUP
+        && editorContext.editorHit.entity->pickup.type != PICKUP_TREASURE;
+    if (isEditMode) {
+        editedEntityRef = editorContext.editorHit.entity;
+        EntityUpdate(editedEntityRef, editedEntityRef);
+    }
+
     static const char* pickupLogics[] = {
-        "Logic_pickup",
+        "Logic_Pickup",
         "Logic_Health",
         "Logic_Ammo",
     };
@@ -37,28 +45,33 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
 
     ImGui::SeparatorText("Entity Data");
     if (ImGui::Combo("Predefined Logic", &logicIndex, pickupLogics, IM_ARRAYSIZE(pickupLogics))) {
-        defaultEntity.logic = pickupLogics[logicIndex];
-        if (defaultEntity.logic == "Logic_Health") {
-            defaultEntity.pickup.type = PICKUP_HEALTH;
-        } else if (defaultEntity.logic == "Logic_Ammo") {
-            defaultEntity.pickup.type = PICKUP_AMMO;
+        editedEntityRef->logic = pickupLogics[logicIndex];
+        if (editedEntityRef->logic == "Logic_Health") {
+            editedEntityRef->pickup.type = PICKUP_HEALTH;
+        } else if (editedEntityRef->logic == "Logic_Ammo") {
+            editedEntityRef->pickup.type = PICKUP_AMMO;
         } else {
-            defaultEntity.pickup.type = PICKUP_NONE;
+            editedEntityRef->pickup.type = PICKUP_NONE;
         }
     }
-    ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
-    ImGui::SliderInt("Pickup Value", &defaultEntity.pickup.value, 0, 20000);
-    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
+    ImGui::InputText("Logic", editedEntityRef->logic.data(), editedEntityRef->logic.capacity());
+    ImGui::SliderInt("Pickup Value", &editedEntityRef->pickup.value, 0, 20000);
+    ImGui::Text("Graphics: %s", editedEntityRef->render.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
-    ImGuiTextureGrid(spriteSheets, defaultEntity.render.graphicsID);
+    ImGuiTextureGrid(spriteSheets, editedEntityRef->render.graphicsID);
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
-    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
+    if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
+        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
     }
+    ImGui::SameLine();
+    ImGui::BeginDisabled();
+    if (ImGui::Button("Edit", addButtonSize)) {
+    }
+    ImGui::EndDisabled();
 
     ImGui::End();
 }

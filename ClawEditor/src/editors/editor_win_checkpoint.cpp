@@ -26,22 +26,34 @@ void DrawCheckpointPropertiesWindow(editorwindow_t& eWindow)
         isInit = true;
     }
 
+    entity_t* editedEntityRef = &defaultEntity;
+    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_CHECKPOINT;
+    if (isEditMode) {
+        editedEntityRef = editorContext.editorHit.entity;
+        EntityUpdate(editedEntityRef, editedEntityRef);
+    }
+
     ImGui::SeparatorText("Entity Data");
     ImGui::BeginDisabled();
-    ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
+    ImGui::InputText("Logic", editedEntityRef->logic.data(), editedEntityRef->logic.capacity());
     ImGui::EndDisabled();
-    ImGui::Checkbox("Keep Inventory", &defaultEntity.checkpoint.keepInventory);
-    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
+    ImGui::Checkbox("Keep Inventory", &editedEntityRef->checkpoint.keepInventory);
+    ImGui::Text("Graphics: %s", editedEntityRef->render.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
-    ImGuiTextureGrid(spriteSheets, defaultEntity.render.graphicsID);
+    ImGuiTextureGrid(spriteSheets, editedEntityRef->render.graphicsID);
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
-    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
+    if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
+        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
     }
+    ImGui::SameLine();
+    ImGui::BeginDisabled();
+    if (ImGui::Button("Edit", addButtonSize)) {
+    }
+    ImGui::EndDisabled();
 
     ImGui::End();
 }

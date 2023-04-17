@@ -29,3 +29,4 @@ void EntityInit(entity_t* self,
 
 void EntitySet(entity_t* self, const entity_components_t& cType, const void* cValue);
 bool EntityHas(entity_t* self, const entity_components_t& cType);
+void EntityUpdate(entity_t* self, const entity_t* to);

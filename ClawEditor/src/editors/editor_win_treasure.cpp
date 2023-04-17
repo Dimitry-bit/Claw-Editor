@@ -12,9 +12,9 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
         return;
     }
 
-    static entity_t defaultEntity;
     const static auto spriteSheets = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(TREASURE|COIN)"), ASSET_TAG_OBJ);
 
+    static entity_t defaultEntity;
     static bool isInit = false;
     if (!isInit) {
         EntityInit(&defaultEntity, "Logic_Treasure", RENDER_SPRITE);
@@ -27,20 +27,29 @@ void DrawTreasurePropertiesWindow(editorwindow_t& eWindow)
         isInit = true;
     }
 
+    entity_t* editedEntityRef = &defaultEntity;
+    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_PICKUP
+        && editorContext.editorHit.entity->pickup.type == PICKUP_TREASURE;
+    if (isEditMode) {
+        editedEntityRef = editorContext.editorHit.entity;
+        EntityUpdate(editedEntityRef, editedEntityRef);
+    }
+
     ImGui::SeparatorText("Entity Data");
-    ImGui::InputText("Logic", defaultEntity.logic.data(), defaultEntity.logic.capacity());
-    ImGui::SliderInt("Gold Value", &defaultEntity.pickup.value, 0, 20000);
-    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
+    ImGui::InputText("Logic", editedEntityRef->logic.data(), editedEntityRef->logic.capacity());
+    ImGui::SliderInt("Gold Value", &editedEntityRef->pickup.value, 0, 20000);
+    ImGui::Text("Graphics: %s", editedEntityRef->render.graphicsID.c_str());
 
     ImGui::SeparatorText("Select Graphics");
-    ImGuiTextureGrid(spriteSheets, defaultEntity.render.graphicsID);
+    ImGuiTextureGrid(spriteSheets, editedEntityRef->render.graphicsID);
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
-    const ImVec2 addButtonSize(100, 20);
-    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
+    const ImVec2 buttonSize(100, 20);
+    if (ImGui::Button("Add", buttonSize) && !editedEntityRef->render.graphicsID.empty()) {
+        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
     }
+    ImGui::SameLine();
 
     ImGui::End();
 }

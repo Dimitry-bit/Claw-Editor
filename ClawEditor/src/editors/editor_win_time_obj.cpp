@@ -28,28 +28,35 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
         isInit = true;
     }
 
+    entity_t* editedEntityRef = &defaultEntity;
+    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_PLATFORM;
+    if (isEditMode) {
+        editedEntityRef = editorContext.editorHit.entity;
+        EntityUpdate(editedEntityRef, editedEntityRef);
+    }
+
     ImGui::SeparatorText("Entity Data");
     string radioName("Logic_Elevator");
-    if (ImGui::RadioButton(radioName.c_str(), defaultEntity.platform.type == PLATFORM_ELEVATOR)) {
-        defaultEntity.platform.type = PLATFORM_ELEVATOR;
-        defaultEntity.logic = radioName;
-        defaultEntity.render.graphicsID = assetElevator.at(0)->header.id;
+    if (ImGui::RadioButton(radioName.c_str(), editedEntityRef->platform.type == PLATFORM_ELEVATOR)) {
+        editedEntityRef->platform.type = PLATFORM_ELEVATOR;
+        editedEntityRef->logic = radioName;
+        editedEntityRef->render.graphicsID = assetElevator.at(0)->header.id;
     }
     radioName = "Logic_Crumblingpeg";
-    if (ImGui::RadioButton(radioName.c_str(), defaultEntity.platform.type == PLATFORM_CRUMBLINGPEG)) {
-        defaultEntity.platform.type = PLATFORM_CRUMBLINGPEG;
-        defaultEntity.logic = radioName;
-        defaultEntity.render.graphicsID = assetCrumbingpeg.at(0)->header.id;
+    if (ImGui::RadioButton(radioName.c_str(), editedEntityRef->platform.type == PLATFORM_CRUMBLINGPEG)) {
+        editedEntityRef->platform.type = PLATFORM_CRUMBLINGPEG;
+        editedEntityRef->logic = radioName;
+        editedEntityRef->render.graphicsID = assetCrumbingpeg.at(0)->header.id;
     }
 
-    ImGui::InputInt("Time(ms)", &defaultEntity.platform.time);
+    ImGui::InputInt("Time(ms)", &editedEntityRef->platform.time);
 
-    ImGui::BeginDisabled(defaultEntity.platform.type != PLATFORM_ELEVATOR);
-    ImGui::DragFloat2("To", &defaultEntity.platform.a.x);
+    ImGui::BeginDisabled(editedEntityRef->platform.type != PLATFORM_ELEVATOR);
+    ImGui::DragFloat2("To", &editedEntityRef->platform.a.x);
     ImGui::EndDisabled();
-    ImGui::Text("Graphics: %s", defaultEntity.render.graphicsID.c_str());
+    ImGui::Text("Graphics: %s", editedEntityRef->render.graphicsID.c_str());
 
-    if (defaultEntity.platform.type == PLATFORM_ELEVATOR && defaultEntity.platform.a != sf::Vector2f(0, 0)) {
+    if (editedEntityRef->platform.type == PLATFORM_ELEVATOR && editedEntityRef->platform.a != sf::Vector2f(0, 0)) {
         const render_context_t& renderContext = GetRenderContext();
         const sf::View cacheView = rWindow->getView();
         entity_t a, b;
@@ -67,8 +74,10 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
         b.render.sprite.setColor(sf::Color(255, 255, 255, 100));
 
         rWindow->setView(renderContext.worldView);
-        const sf::Vector2f aPos = renderContext.worldView.getCenter();
-        const sf::Vector2f bPos = aPos + defaultEntity.platform.a;
+        const sf::Vector2f
+            aPos = (isEditMode) ? editedEntityRef->render.sprite.getPosition() : renderContext.worldView.getCenter();
+        const sf::Vector2f bPos = aPos + editedEntityRef->platform.a;
+
         a.render.sprite.setPosition(aPos);
         b.render.sprite.setPosition(bPos);
 
@@ -80,9 +89,14 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
     ImGui::NewLine();
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
-    if (ImGui::Button("Add", addButtonSize) && !defaultEntity.render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(defaultEntity);
+    if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
+        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
     }
+    ImGui::SameLine();
+    ImGui::BeginDisabled();
+    if (ImGui::Button("Edit", addButtonSize)) {
+    }
+    ImGui::EndDisabled();
 
     ImGui::End();
 }

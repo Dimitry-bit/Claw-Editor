@@ -15,7 +15,7 @@ entity_t* ActionPlaceTile(const entity_t& entity)
     assert(e);
 
     EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
-    EntitySet(e, C_TILE, &entity.tile);
+    EntitySet(e, entity.type, &entity.tile);
     e->render.sprite.setPosition(pos);
 
     SceneAddTile(e, mouseGridPos.x, mouseGridPos.y);
@@ -30,7 +30,6 @@ entity_t* ActionPlaceEntity(const entity_t& entity, sf::Vector2f origin)
 
     *e = entity;
     EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
-    EntitySet(e, entity.type, &entity.tile);
     sf::Vector2f pos = GetRenderContext().worldView.getCenter();
     e->render.sprite.setPosition(pos);
     e->render.sprite.setOrigin(origin);

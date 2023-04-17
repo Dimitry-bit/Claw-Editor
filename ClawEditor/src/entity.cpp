@@ -77,43 +77,17 @@ static void EntityInitRender(entity_t* self, const render_types_t& rType, const 
     self->render.type = rType;
     self->render.graphicsID = graphicID;
     if (self->render.type == RENDER_SPRITE && !self->render.graphicsID.empty()) {
-        self->render.sprite.setTexture(ResTextureGet(self->render.graphicsID.c_str()));
+        const sf::Texture& tex = ResTextureGet(self->render.graphicsID.c_str());
+        self->render.sprite.setTexture(tex);
+        self->render.sprite.setTextureRect(sf::IntRect(0, 0, tex.getSize().x, tex.getSize().y));
     }
 }
 
-//void EntityCreateTile(entity_t* entity,
-//                      const char* graphics,
-//                      tile_types_t type,
-//                      const sf::Vector2f& position,
-//                      const sf::Vector2f& origin)
-//{
-//    assert(entity);
-//
-//    const sf::Texture& texture = ResTextureGet(graphics);
-//
-//    entity->logic = "LOGIC_TILES";
-//    entity->graphicsID = graphics;
-//    entity->type = type;
-//
-//    entity->sprite.setTexture(texture);
-//    entity->sprite.setOrigin(origin);
-//    entity->sprite.setPosition(position);
-//}
-//
-//void EntityCreateOBJ(entity_t* entity,
-//                     const char* graphics,
-//                     const char* logic,
-//                     const sf::Vector2f& position,
-//                     const sf::Vector2f& origin)
-//{
-//    assert(entity);
-//
-//    const sf::Texture& texture = ResTextureGet(graphics);
-//
-//    entity->logic = logic;
-//    entity->graphicsID = graphics;
-//
-//    entity->sprite.setTexture(texture);
-//    entity->sprite.setOrigin(origin);
-//    entity->sprite.setPosition(position);
-//}
+void EntityUpdate(entity_t* self, const entity_t* to)
+{
+    assert(self);
+    assert(to);
+
+    *self = *to;
+    EntityInit(self, to->logic, to->render.type, to->render.graphicsID);
+}
