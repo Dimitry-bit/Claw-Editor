@@ -30,6 +30,11 @@ void ClawEditMain()
                             windowName, sf::Style::Default, contextSettings);
     rWindow = &window;
 
+    sf::Image icon;
+    if (icon.loadFromFile("icon.png")) {
+        window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+    }
+
     render_context_t renderContext = {};
     editor_context_t editorContext = {};
     scene_context_t world;
