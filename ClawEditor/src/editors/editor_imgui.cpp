@@ -22,13 +22,14 @@ void EditorInitImGuiWindows(editor_context_t* editorContext)
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Treasure Properties",
                          DrawTreasurePropertiesWindow);
-    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Pickup Properties", DrawPickupPropertiesWindow);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Pickup Properties", DrawPickupPropertiesWindow,
+                         sf::Keyboard::P);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties",
-                         DrawTimeObjPropertiesWindow);
+                         DrawTimeObjPropertiesWindow, sf::Keyboard::O);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Checkpoint Properties",
-                         DrawCheckpointPropertiesWindow);
+                         DrawCheckpointPropertiesWindow, sf::Keyboard::C);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Eyecandy Properties",
-                         DrawEyeCandyPropertiesWindow);
+                         DrawEyeCandyPropertiesWindow, sf::Keyboard::E);
     EditorRegisterWindow(editorContext, "Help", "About", DrawAboutWindow);
 }
 
