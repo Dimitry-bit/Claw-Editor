@@ -9,11 +9,6 @@
 
 void SceneAllocAssets(scene_context_t* world)
 {
-    world->tileGridWidth = MAX_GRID_SIZE;
-    world->tileGridHeight = MAX_GRID_SIZE;
-    world->tileSize = 64;
-    world->tileGrid = new entity_t* [world->tileGridWidth * world->tileGridHeight];
-
     AssetPushType(ASSET_SPRITESHEET);
     ResLoadFromFile("tilesets/LEVEL1_TILES.png", ASSET_TAG_TILE);
     ResLoadFromFile("objects/LEVEL1_OBJECTS.png", ASSET_TAG_OBJ | ASSET_TAG_EYECANDY);
@@ -51,7 +46,7 @@ void SceneDealloc(scene_context_t* world)
             EntityDealloc(&world->tileGrid[y * world->tileGridWidth + x]);
         }
     }
-    delete world->tileGrid;
+//    delete world->tileGrid;
 
     for (auto& object: world->objects) {
         EntityDealloc(&object);
@@ -73,12 +68,12 @@ sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector
     return tileStartPos;
 }
 
-entity_t* SceneGetTile(const scene_context_t* world, const sf::Vector2f& pos)
+entity_t* SceneGetTileWithPos(const scene_context_t* world, const sf::Vector2f& pos)
 {
-    return SceneGetTile(world, pos.x, pos.y);
+    return SceneGetTileWithPos(world, pos.x, pos.y);
 }
 
-entity_t* SceneGetTile(const scene_context_t* world, float x, float y)
+entity_t* SceneGetTileWithPos(const scene_context_t* world, float x, float y)
 {
     entity_t* result = nullptr;
     int gridPosX = (int) roundf(x / (float) world->tileSize);
@@ -92,14 +87,25 @@ entity_t* SceneGetTile(const scene_context_t* world, float x, float y)
     return result;
 }
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, unsigned int x, unsigned int y)
+entity_t* SceneGetTileWithIndex(const scene_context_t* world, int x, int y)
+{
+    entity_t* result = nullptr;
+    if (x >= 0 && x < MAX_GRID_SIZE &&
+        y >= 0 && y < MAX_GRID_SIZE) {
+        result = world->tileGrid[y * world->tileGridWidth + x];
+    }
+
+    return result;
+}
+
+void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
 {
     if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
         printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
         return;
     }
 
-    entity_t* e = SceneGetTile(world, x, y);
+    entity_t* e = SceneGetTileWithPos(world, x, y);
     if (e) {
         EntityDealloc(&e);
     }
@@ -108,7 +114,7 @@ void SceneAddTile(scene_context_t* world, entity_t* entity, unsigned int x, unsi
     printf("[INFO][SceneManager]: Tile Placed.\n");
 }
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2u& tilePos)
+void SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2i& tilePos)
 {
     SceneAddTile(world, entity, tilePos.x, tilePos.y);
 }
@@ -127,7 +133,7 @@ entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
 
     for (int x = 0; x < MAX_GRID_SIZE; ++x) {
         for (int y = 0; y < MAX_GRID_SIZE; ++y) {
-            entity_t* e = SceneGetTile(world, x, y);
+            entity_t* e = SceneGetTileWithPos(world, x, y);
             if (e == entity) {
                 printf("[Info][SceneManager]: Entity removed.\n");
                 return e;
@@ -149,7 +155,7 @@ entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
 
 bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out)
 {
-    entity_t* e = SceneGetTile(world, x, y);
+    entity_t* e = SceneGetTileWithPos(world, x, y);
     bool isHit = (e != nullptr);
 
     for (auto it = world->objects.rbegin(); it != world->objects.rend(); ++it) {
@@ -195,7 +201,7 @@ void DrawWorld(const render_context_t* renderContext, const scene_context_t* wor
 
     for (int x = fromX; x < toX; ++x) {
         for (int y = fromY; y < toY; ++y) {
-            entity_t* tile = SceneGetTile(world, x, y);
+            entity_t* tile = SceneGetTileWithIndex(world, x, y);
             if (!tile)
                 continue;
 

@@ -30,9 +30,14 @@ void ClawEditMain()
                             windowName, sf::Style::Default, contextSettings);
     rWindow = &window;
 
-    render_context_t renderContext;
+    render_context_t renderContext = {};
+    editor_context_t editorContext = {};
     scene_context_t world;
-    editor_context_t editorContext;
+    world.tileGridWidth = MAX_GRID_SIZE;
+    world.tileGridHeight = MAX_GRID_SIZE;
+    world.tileSize = 64;
+    entity_t* tileGrid[MAX_GRID_SIZE][MAX_GRID_SIZE] = {};
+    world.tileGrid = (entity_t**) tileGrid;
 
     SceneAllocAssets(&world);
     RendererInit(&renderContext, initWindowWidth, initWindowHeight);

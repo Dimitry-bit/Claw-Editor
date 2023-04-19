@@ -17,7 +17,7 @@ entity_t* ActionPlaceTile(scene_context_t* world, const entity_t& entity)
     EntitySet(e, entity.type, &entity.tile);
     EntitySetPos(e, placementPos);
 
-    SceneAddTile(world, e, girdPos);
+    SceneAddTile(world, e, sf::Vector2i(girdPos));
     return e;
 }
 
@@ -53,9 +53,8 @@ void ActionEntityMove(scene_context_t* world, entity_t& entity)
     const sf::Vector2u girdPos = SceneGetGridPos(world, mouseViewPos);
     const sf::Vector2f gridSnapPos = SceneGetTileStartPos(world, mouseViewPos);
 
-    // TODO(Tony): Add Renders
 //    if (isSnapToGrid) {
-//        EntitySetPos(&entity, gridSnapPos);
+//    EntitySetPos(&entity, gridSnapPos);
 //    } else {
     EntitySetPos(&entity, mouseViewPos);
 //    }
