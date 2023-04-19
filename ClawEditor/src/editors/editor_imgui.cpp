@@ -38,17 +38,57 @@ void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t*
 {
     ImGui::SFML::Update(*rWindow, deltaTime);
 
+    static float pressTimer = 0;
+    pressTimer += deltaTime.asSeconds();
+
+    ImGuiIO& io = ImGui::GetIO();
+    if (!io.WantCaptureMouse && !io.WantCaptureKeyboard) {
+        bool (* hitFunction)(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
+        if (editorContext->mode == EDITOR_MODE_OBJ) {
+            hitFunction = SceneIsEntityHitObj;
+        } else if (editorContext->mode == EDITOR_MODE_TILE) {
+            hitFunction = SceneIsEntityHitTile;
+        }
+
+        if (editorContext->brushMode == BRUSH_MODE_ERASE) {
+            bool (* inputFunction)(sf::Mouse::Button);
+            if (editorContext->brushType == BRUSH_TYPE_WHEE) {
+                inputFunction = sf::Mouse::isButtonPressed;
+            } else if (editorContext->brushType == BRUSH_TYPE_CLICKY) {
+                inputFunction = isMousePressed;
+            }
+            if (inputFunction(sf::Mouse::Left)) {
+                editorContext->editorHit.mouseViewPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
+                hitFunction(world, editorContext->editorHit.mouseViewPos, &editorContext->editorHit.entity);
+            }
+        } else {
+            if (isMousePressed(sf::Mouse::Left)) {
+                if (pressTimer <= doubleClickThreshold) {
+                    editorContext->editorHit.mouseViewPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
+                    hitFunction(world, editorContext->editorHit.mouseViewPos, &editorContext->editorHit.entity);
+                } else {
+                    editorContext->editorHit.entity = nullptr;
+                }
+                pressTimer = 0;
+            }
+        }
+
+        static float dragTimer = 0;
+        if (editorContext->mode == EDITOR_MODE_OBJ) {
+            (sf::Mouse::isButtonPressed(sf::Mouse::Left)) ? dragTimer += deltaTime.asSeconds() : dragTimer = 0;
+            if (dragTimer >= dragThreshold && editorContext->editorHit.entity) {
+                ActionEntityMove(world, *editorContext->editorHit.entity);
+            }
+
+            if (isKeyPressed(sf::Keyboard::Delete)) {
+                ActionDeleteEntity(world, &editorContext->editorHit.entity);
+            }
+        }
+    }
+
     DrawMainMenuBar(editorContext, *renderContext);
     DrawStatusBar(editorContext);
     EditorUpdateWindows(editorContext, world);
-
-    static float dragTimer = 0;
-    if (editorContext->mode == EDITOR_MODE_OBJ) {
-        (sf::Mouse::isButtonPressed(sf::Mouse::Left)) ? dragTimer += deltaTime.asSeconds() : dragTimer = 0;
-        if (dragTimer >= 0.1f && editorContext->editorHit.entity) {
-            ActionEntityMove(world, *editorContext->editorHit.entity);
-        }
-    }
 
     ImGui::SFML::Render(*rWindow);
 }
@@ -98,10 +138,6 @@ void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderCo
     }
 
     if (ImGui::BeginMenu(ICON_MD_VISIBILITY "View")) {
-        if (ImGui::MenuItem(ICON_MD_GRID_3X3 "Show Guides")) {
-
-        }
-
         ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties", nullptr, &renderContext.settings.isDrawTileCollider);
 
         for (auto& eWindow: editors["View"]) {

@@ -41,6 +41,7 @@ struct editorwindow_t {
 };
 
 struct editor_hit_t {
+    sf::Vector2f mouseViewPos;
     entity_t* entity;
 };
 

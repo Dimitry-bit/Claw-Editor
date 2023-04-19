@@ -181,10 +181,45 @@ bool SceneIsTileOccupied(const scene_context_t* world, const sf::Vector2i& pos)
     return SceneIsTileOccupied(world, pos.x, pos.y);
 }
 
-bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out)
+bool SceneIsEntityHitAny(const scene_context_t* world, float x, float y, entity_t** out)
+{
+    if (SceneIsEntityHitObj(world, x, y, out)) {
+        return true;
+    }
+
+    if (SceneIsEntityHitTile(world, x, y, out)) {
+        return true;
+    }
+
+    return false;
+}
+
+bool SceneIsEntityHitAny(const scene_context_t* world, const sf::Vector2f& point, entity_t** out)
+{
+    return SceneIsEntityHitAny(world, point.x, point.y, out);
+}
+
+bool SceneIsEntityHitTile(const scene_context_t* world, float x, float y, entity_t** out)
 {
     entity_t* e = SceneGetTileWithPos(world, x, y);
     bool isHit = (e != nullptr);
+
+    if (out) {
+        *out = e;
+    }
+
+    return isHit;
+}
+
+bool SceneIsEntityHitTile(const scene_context_t* world, const sf::Vector2f& point, entity_t** out)
+{
+    return SceneIsEntityHitTile(world, point.x, point.y, out);
+}
+
+bool SceneIsEntityHitObj(const scene_context_t* world, float x, float y, entity_t** out)
+{
+    entity_t* e = nullptr;
+    bool isHit = false;
 
     for (auto it = world->objects.rbegin(); it != world->objects.rend(); ++it) {
         entity_t* entity = *it;
@@ -202,9 +237,9 @@ bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t**
     return isHit;
 }
 
-bool SceneIsEntityHit(const scene_context_t* world, const sf::Vector2f& point, entity_t** out)
+bool SceneIsEntityHitObj(const scene_context_t* world, const sf::Vector2f& point, entity_t** out)
 {
-    return SceneIsEntityHit(world, point.x, point.y, out);
+    return SceneIsEntityHitObj(world, point.x, point.y, out);
 }
 
 void DrawWorld(const render_context_t* renderContext, const scene_context_t* world)

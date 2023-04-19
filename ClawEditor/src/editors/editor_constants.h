@@ -11,6 +11,9 @@ inline const int sfmlTextSize = 13;
 inline const float boundaryOffsetX = 20.0f;
 inline const float boundaryOffsetY = 45.0f;
 
+inline const float doubleClickThreshold = 0.5f;
+inline const float dragThreshold = 0.1f;
+
 inline const sf::Color frameTimeColor = sf::Color::White;
 inline const sf::Color mouseCoordinatesColor = sf::Color::White;
 inline const sf::Color spriteDebugColor = sf::Color::Yellow;

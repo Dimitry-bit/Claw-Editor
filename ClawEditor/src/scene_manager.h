@@ -36,7 +36,11 @@ bool SceneIsValidTile(const scene_context_t* world, int x, int y);
 bool SceneIsValidTile(const scene_context_t* world, const sf::Vector2i& pos);
 bool SceneIsTileOccupied(const scene_context_t* world, int x, int y);
 bool SceneIsTileOccupied(const scene_context_t* world, const sf::Vector2i& pos);
-bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out);
-bool SceneIsEntityHit(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
+bool SceneIsEntityHitAny(const scene_context_t* world, float x, float y, entity_t** out);
+bool SceneIsEntityHitAny(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
+bool SceneIsEntityHitTile(const scene_context_t* world, float x, float y, entity_t** out);
+bool SceneIsEntityHitTile(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
+bool SceneIsEntityHitObj(const scene_context_t* world, float x, float y, entity_t** out);
+bool SceneIsEntityHitObj(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
 
 void DrawWorld(const render_context_t* renderContext, const scene_context_t* world);
