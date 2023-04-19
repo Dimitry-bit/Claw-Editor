@@ -281,7 +281,7 @@ static void ActionSerializeWorld(editor_context_t* editorContext, const scene_co
         return;
     }
 
-    if (file.find(".cscene")) {
+    if (file.find(".cscene") != string::npos) {
         editorContext->saveFile = file;
     } else {
         editorContext->saveFile = file + ".cscene";
