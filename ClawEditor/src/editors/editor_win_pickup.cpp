@@ -66,11 +66,6 @@ void DrawPickupPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow)
     if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
         eWindow.context->editorHit.entity = ActionPlaceEntity(world, *editedEntityRef);
     }
-    ImGui::SameLine();
-    ImGui::BeginDisabled();
-    if (ImGui::Button("Edit", addButtonSize)) {
-    }
-    ImGui::EndDisabled();
 
     ImGui::End();
 }

@@ -49,11 +49,6 @@ void DrawCheckpointPropertiesWindow(scene_context_t* world, editorwindow_t& eWin
     if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
         eWindow.context->editorHit.entity = ActionPlaceEntity(world, *editedEntityRef);
     }
-    ImGui::SameLine();
-    ImGui::BeginDisabled();
-    if (ImGui::Button("Edit", addButtonSize)) {
-    }
-    ImGui::EndDisabled();
 
     ImGui::End();
 }
