@@ -101,11 +101,13 @@ static void UpdateAndRenderWindow(render_context_t* renderContext,
     rWindow->setView(renderContext->worldView);
     DrawWorld(renderContext, world);
     EditorUpdateInWorldEditors(editorContext, world);
-    EditorUpdateImGuiEditors(editorContext, renderContext, world, deltaTime);
 
     rWindow->setView(renderContext->uiView);
     DrawMouseCoordinates(renderContext, world);
     DrawFrameTime(deltaTime.asSeconds());
+
+    rWindow->setView(renderContext->worldView);
+    EditorUpdateImGuiEditors(editorContext, renderContext, world, deltaTime);
 
     rWindow->display();
 
