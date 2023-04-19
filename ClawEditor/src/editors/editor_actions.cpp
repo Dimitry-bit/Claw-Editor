@@ -4,63 +4,59 @@
 #include "scene_manager.h"
 #include "input.h"
 
-entity_t* ActionPlaceTile(const entity_t& entity)
+entity_t* ActionPlaceTile(scene_context_t* world, const entity_t& entity)
 {
-    const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-    const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, GetRenderContext().worldView);
-    const sf::Vector2u mouseGridPos(mouseViewPos / (float) gridSize);
-    const sf::Vector2f pos(mouseGridPos.x * gridSize, mouseGridPos.y * gridSize);
+    const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
+    const sf::Vector2u girdPos = SceneGetGridPos(world, mouseViewPos);
+    const sf::Vector2f placementPos = SceneGetTileStartPos(world, mouseViewPos);
 
     entity_t* e = EntityAlloc();
     assert(e);
 
     EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
     EntitySet(e, entity.type, &entity.tile);
-    e->render.sprite.setPosition(pos);
+    EntitySetPos(e, placementPos);
 
-    SceneAddTile(e, mouseGridPos.x, mouseGridPos.y);
-
+    SceneAddTile(world, e, girdPos);
     return e;
 }
 
-entity_t* ActionPlaceEntity(const entity_t& entity, sf::Vector2f origin)
+entity_t* ActionPlaceEntity(scene_context_t* world, const entity_t& entity, sf::Vector2f origin)
 {
     entity_t* e = EntityAlloc();
     assert(e);
 
+    const sf::Vector2f placementPos = rWindow->getView().getCenter();
+
     *e = entity;
     EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
-    sf::Vector2f pos = GetRenderContext().worldView.getCenter();
-    e->render.sprite.setPosition(pos);
-    e->render.sprite.setOrigin(origin);
+    EntitySetOrigin(e, origin);
+    EntitySetPos(e, placementPos);
 
-    SceneAddObject(e);
-
+    SceneAddObject(world, e);
     return e;
 }
 
-void ActionDeleteEntity(entity_t** hitEntityPtr)
+void ActionDeleteEntity(scene_context_t* world, entity_t** hitEntityPtr)
 {
     if (!hitEntityPtr || !(*hitEntityPtr)) {
         return;
     }
 
-    SceneRemoveEntity(*hitEntityPtr);
+    SceneRemoveEntity(world, *hitEntityPtr);
     EntityDealloc(hitEntityPtr);
 }
 
-void ActionEntityMove(entity_t& entity)
+void ActionEntityMove(scene_context_t* world, entity_t& entity)
 {
-    const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-    const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, GetRenderContext().worldView);
-    const sf::Vector2u mouseGridPos(mouseViewPos / (float) gridSize);
-    const sf::Vector2f pos(mouseGridPos.x * gridSize, mouseGridPos.y * gridSize);
-    const bool isSnapToGrid = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+    const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
+    const sf::Vector2u girdPos = SceneGetGridPos(world, mouseViewPos);
+    const sf::Vector2f gridSnapPos = SceneGetTileStartPos(world, mouseViewPos);
 
     // TODO(Tony): Add Renders
-    if (isSnapToGrid) {
-        entity.render.sprite.setPosition(pos);
-    } else {
-        entity.render.sprite.setPosition(mouseViewPos);
-    }
+//    if (isSnapToGrid) {
+//        EntitySetPos(&entity, gridSnapPos);
+//    } else {
+    EntitySetPos(&entity, mouseViewPos);
+//    }
 }

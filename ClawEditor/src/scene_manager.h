@@ -20,10 +20,14 @@ struct scene_context_t {
 void SceneAllocAssets(scene_context_t* world);
 void SceneDealloc(scene_context_t* world);
 
+sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos);
+inline sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos);
+
 entity_t* SceneGetTile(const scene_context_t* world, float x, float y);
 entity_t* SceneGetTile(const scene_context_t* world, const sf::Vector2f& pos);
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y);
+void SceneAddTile(scene_context_t* world, entity_t* entity, unsigned int x, unsigned int y);
+void SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2u& tilePos);
 void SceneAddObject(scene_context_t* world, entity_t* entity);
 entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity);
 

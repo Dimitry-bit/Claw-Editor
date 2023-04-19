@@ -61,6 +61,18 @@ void SceneDealloc(scene_context_t* world)
     printf("[INFO][SceneManager]: Scene deallocated successfully.\n");
 }
 
+inline sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos)
+{
+    return sf::Vector2u(viewPos / (float) world->tileSize);
+}
+
+inline sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos)
+{
+    sf::Vector2u girdPos = SceneGetGridPos(world, viewPos);
+    sf::Vector2f tileStartPos(girdPos.x * world->tileSize, girdPos.y * world->tileSize);
+    return tileStartPos;
+}
+
 entity_t* SceneGetTile(const scene_context_t* world, const sf::Vector2f& pos)
 {
     return SceneGetTile(world, pos.x, pos.y);
@@ -80,7 +92,7 @@ entity_t* SceneGetTile(const scene_context_t* world, float x, float y)
     return result;
 }
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
+void SceneAddTile(scene_context_t* world, entity_t* entity, unsigned int x, unsigned int y)
 {
     if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
         printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
@@ -94,6 +106,11 @@ void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
 
     world->tileGrid[y * world->tileGridWidth + x] = entity;
     printf("[INFO][SceneManager]: Tile Placed.\n");
+}
+
+void SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2u& tilePos)
+{
+    SceneAddTile(world, entity, tilePos.x, tilePos.y);
 }
 
 void SceneAddObject(scene_context_t* world, entity_t* entity)

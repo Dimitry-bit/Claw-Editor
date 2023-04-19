@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "entity.h"
+#include "renderer.h"
 #include "resource_manager.h"
 
 static void EntityInitRender(entity_t* self, const render_types_t& rType, const std::string_view& graphicID = "");
@@ -90,4 +91,48 @@ void EntityUpdate(entity_t* self, const entity_t* to)
 
     *self = *to;
     EntityInit(self, to->logic, to->render.type, to->render.graphicsID);
+}
+
+void EntitySetPos(entity_t* self, float x, float y)
+{
+    assert(self);
+
+    self->render.sprite.setPosition(x, y);
+    self->render.rectangleShape.setPosition(x, y);
+    self->render.circleShape.setPosition(x, y);
+}
+
+void EntitySetPos(entity_t* self, const sf::Vector2f& pos)
+{
+    EntitySetPos(self, pos.x, pos.y);
+}
+
+void EntitySetOrigin(entity_t* self, float x, float y)
+{
+    assert(self);
+
+    self->render.sprite.setOrigin(x, y);
+    self->render.rectangleShape.setOrigin(x, y);
+    self->render.circleShape.setOrigin(x, y);
+}
+
+void EntitySetOrigin(entity_t* self, const sf::Vector2f& origin)
+{
+    EntitySetOrigin(self, origin.x, origin.y);
+}
+
+void DrawEntity(const entity_t* entity)
+{
+    assert(entity);
+    if (entity->render.type == RENDER_NONE) {
+        return;
+    }
+
+    if (entity->render.type == RENDER_SPRITE) {
+        rWindow->draw(entity->render.sprite);
+    } else if (entity->render.type == RENDER_RECTANGLE) {
+        rWindow->draw(entity->render.rectangleShape);
+    } else if (entity->render.type == RENDER_CIRCLE) {
+        rWindow->draw(entity->render.circleShape);
+    }
 }

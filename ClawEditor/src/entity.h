@@ -22,11 +22,16 @@ struct entity_t {
 entity_t* EntityAlloc();
 void EntityDealloc(entity_t** entity);
 
-void EntityInit(entity_t* self,
-                const std::string_view& logic,
-                const render_types_t& rType,
+void EntityInit(entity_t* self, const std::string_view& logic, const render_types_t& rType,
                 const std::string_view graphicID = "");
 
-void EntitySet(entity_t* self, const entity_components_t& cType, const void* cValue);
 bool EntityHas(entity_t* self, const entity_components_t& cType);
+void EntitySet(entity_t* self, const entity_components_t& cType, const void* cValue);
+void EntitySetPos(entity_t* self, float x, float y);
+void EntitySetPos(entity_t* self, const sf::Vector2f& pos);
+void EntitySetOrigin(entity_t* self, float x, float y);
+void EntitySetOrigin(entity_t* self, const sf::Vector2f& origin);
+
 void EntityUpdate(entity_t* self, const entity_t* to);
+
+void DrawEntity(const entity_t* entity);
