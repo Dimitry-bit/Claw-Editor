@@ -76,11 +76,11 @@ entity_t* SceneGetTileWithPos(const scene_context_t* world, const sf::Vector2f& 
 entity_t* SceneGetTileWithPos(const scene_context_t* world, float x, float y)
 {
     entity_t* result = nullptr;
-    int gridPosX = (int) roundf(x / (float) world->tileSize);
-    int gridPosY = (int) roundf(y / (float) world->tileSize);
+    int gridPosX = (int) (x / (float) world->tileSize);
+    int gridPosY = (int) (y / (float) world->tileSize);
 
-    if (gridPosX >= 0 && gridPosX < MAX_GRID_SIZE &&
-        gridPosY >= 0 && gridPosY < MAX_GRID_SIZE) {
+    if (gridPosX >= 0 && gridPosX < world->tileGridWidth &&
+        gridPosY >= 0 && gridPosY < world->tileGridHeight) {
         result = world->tileGrid[gridPosY * world->tileGridWidth + gridPosX];
     }
 
@@ -90,8 +90,8 @@ entity_t* SceneGetTileWithPos(const scene_context_t* world, float x, float y)
 entity_t* SceneGetTileWithIndex(const scene_context_t* world, int x, int y)
 {
     entity_t* result = nullptr;
-    if (x >= 0 && x < MAX_GRID_SIZE &&
-        y >= 0 && y < MAX_GRID_SIZE) {
+    if (x >= 0 && x < world->tileGridWidth &&
+        y >= 0 && y < world->tileGridHeight) {
         result = world->tileGrid[y * world->tileGridWidth + x];
     }
 
@@ -158,7 +158,7 @@ entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
 
 bool SceneIsValidTile(const scene_context_t* world, int x, int y)
 {
-    return (x >= 0 && x < MAX_GRID_SIZE) && (y >= 0 && y < MAX_GRID_SIZE);
+    return (x >= 0 && x < world->tileGridWidth) && (y >= 0 && y < world->tileGridHeight);
 }
 
 bool SceneIsValidTile(const scene_context_t* world, const sf::Vector2i& pos)
@@ -168,7 +168,7 @@ bool SceneIsValidTile(const scene_context_t* world, const sf::Vector2i& pos)
 
 bool SceneIsTileOccupied(const scene_context_t* world, int x, int y)
 {
-    if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
+    if (!(x >= 0 && x < world->tileGridWidth) || !(y >= 0 && y < world->tileGridHeight)) {
         printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
         return true;
     }
@@ -222,10 +222,10 @@ void DrawWorld(const render_context_t* renderContext, const scene_context_t* wor
     int toX = (drawCenter.x + width) / size + 2;
     int fromY = (drawCenter.y - height) / size - 2;
     int toY = (drawCenter.y + height) / size + 2;
-    fromX = std::clamp(fromX, 0, MAX_GRID_SIZE - 1);
-    toX = std::clamp(toX, 0, MAX_GRID_SIZE - 1);
-    fromY = std::clamp(fromY, 0, MAX_GRID_SIZE - 1);
-    toY = std::clamp(toY, 0, MAX_GRID_SIZE - 1);
+    fromX = std::clamp(fromX, 0, (int) world->tileGridWidth - 1);
+    toX = std::clamp(toX, 0, (int) world->tileGridHeight - 1);
+    fromY = std::clamp(fromY, 0, (int) world->tileGridHeight - 1);
+    toY = std::clamp(toY, 0, (int) world->tileGridHeight - 1);
 
     for (int x = fromX; x < toX; ++x) {
         for (int y = fromY; y < toY; ++y) {
