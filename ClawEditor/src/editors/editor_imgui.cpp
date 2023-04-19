@@ -32,12 +32,12 @@ void EditorInitImGuiWindows(editor_context_t* editorContext)
     EditorRegisterWindow(editorContext, "Help", "About", DrawAboutWindow);
 }
 
-void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t& renderContext,
+void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t* renderContext,
                               scene_context_t* world, sf::Time deltaTime)
 {
     ImGui::SFML::Update(*rWindow, deltaTime);
 
-    DrawMainMenuBar(editorContext, renderContext);
+    DrawMainMenuBar(editorContext, *renderContext);
     DrawStatusBar(editorContext);
     EditorUpdateWindows(editorContext, world);
 
