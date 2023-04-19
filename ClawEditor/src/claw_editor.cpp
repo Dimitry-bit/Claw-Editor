@@ -77,24 +77,7 @@ static void UpdateAndRenderWindow(render_context_t* renderContext,
                                   editor_context_t* editorContext,
                                   sf::Time deltaTime)
 {
-    ImGuiIO& io = ImGui::GetIO();
-    if (!io.WantCaptureMouse && !io.WantCaptureKeyboard) {
-        static float pressTimer = 0;
-        pressTimer += deltaTime.asSeconds();
-        if (isMousePressed(sf::Mouse::Left)) {
-            if (pressTimer <= 0.5f) {
-                const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-                const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos);
-                SceneIsEntityHit(world, mouseViewPos, &editorContext->editorHit.entity);
-            } else {
-                editorContext->editorHit.entity = nullptr;
-            }
-            pressTimer = 0;
-        }
-    }
-
     HandleEvent(renderContext, editorContext);
-    SceneNavigationUpdate(renderContext);
 
     rWindow->clear();
 
@@ -103,6 +86,7 @@ static void UpdateAndRenderWindow(render_context_t* renderContext,
     EditorUpdateInWorldEditors(editorContext, world);
 
     rWindow->setView(renderContext->uiView);
+    SceneNavigationUpdate(renderContext);
     DrawMouseCoordinates(renderContext, world);
     DrawFrameTime(deltaTime.asSeconds());
 

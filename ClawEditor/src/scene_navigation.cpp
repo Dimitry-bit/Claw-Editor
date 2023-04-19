@@ -35,19 +35,18 @@ void SceneNavigationUpdate(render_context_t* renderContext)
 
 void SceneMovement(render_context_t* renderContext)
 {
-    static sf::Vector2i oldPos;
-    sf::Vector2i currentPos;
+    static sf::Vector2f oldPos;
+    sf::Vector2f currentPos;
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-        currentPos = sf::Mouse::getPosition(*rWindow);
-        sf::Vector2f pos = rWindow->mapPixelToCoords(sf::Vector2i(oldPos.x - currentPos.x, oldPos.y - currentPos.y));
+        currentPos = sf::Vector2f(sf::Mouse::getPosition(*rWindow));
+        sf::Vector2f pos = rWindow->mapPixelToCoords(sf::Vector2i(oldPos - currentPos));
         renderContext->worldView.move(pos.x / gameZoom, pos.y / gameZoom);
 
-        rWindow->setView(renderContext->worldView);
         oldPos = currentPos;
         rWindow->setMouseCursor(cursorHand);
     } else {
-        oldPos = sf::Mouse::getPosition(*rWindow);
+        oldPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
         rWindow->setMouseCursor(cursorArrow);
     }
 }
