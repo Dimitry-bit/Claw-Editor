@@ -100,7 +100,7 @@ entity_t* SceneGetTileWithIndex(const scene_context_t* world, int x, int y)
 
 bool SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
 {
-    if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
+    if (!SceneIsValidTile(world, x, y)) {
         printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
         return false;
     }
@@ -133,11 +133,12 @@ entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
 {
     assert(entity);
 
-    for (int x = 0; x < MAX_GRID_SIZE; ++x) {
-        for (int y = 0; y < MAX_GRID_SIZE; ++y) {
-            entity_t* e = SceneGetTileWithPos(world, x, y);
+    for (int y = 0; y < world->tileGridHeight; ++y) {
+        for (int x = 0; x < world->tileGridWidth; ++x) {
+            entity_t* e = SceneGetTileWithIndex(world, x, y);
             if (e == entity) {
                 printf("[Info][SceneManager]: Entity removed.\n");
+                world->tileGrid[y * world->tileGridWidth + x] = nullptr;
                 return e;
             }
         }
