@@ -3,7 +3,7 @@
 #include "editor_internal.h"
 #include "resource_manager.h"
 
-void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
+void DrawTimeObjPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow)
 {
     ImGui::SetNextWindowPos(ImVec2(0, rWindow->getSize().y), ImGuiCond_Once, ImVec2(0, 1));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -13,7 +13,6 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
 
     static const auto assetElevator = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("ELEVATOR"), ASSET_TAG_OBJ);
     static const auto assetCrumbingpeg = ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("CRUMBLINGPEG"), ASSET_TAG_OBJ);
-
     static entity_t defaultEntity;
     static bool isInit = false;
     if (!isInit) {
@@ -29,9 +28,9 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
     }
 
     entity_t* editedEntityRef = &defaultEntity;
-    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_PLATFORM;
+    bool isEditMode = eWindow.context->editorHit.entity && eWindow.context->editorHit.entity->type == C_PLATFORM;
     if (isEditMode) {
-        editedEntityRef = editorContext.editorHit.entity;
+        editedEntityRef = eWindow.context->editorHit.entity;
         EntityUpdate(editedEntityRef, editedEntityRef);
     }
 
@@ -57,7 +56,6 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
     ImGui::Text("Graphics: %s", editedEntityRef->render.graphicsID.c_str());
 
     if (editedEntityRef->platform.type == PLATFORM_ELEVATOR && editedEntityRef->platform.a != sf::Vector2f(0, 0)) {
-        const render_context_t& renderContext = GetRenderContext();
         const sf::View cacheView = rWindow->getView();
         entity_t a, b;
         EntityInit(&a, "Logic_Elevator", RENDER_SPRITE, assetElevator.at(0)->header.id);
@@ -70,27 +68,25 @@ void DrawTimeObjPropertiesWindow(editorwindow_t& eWindow)
         };
         EntitySet(&a, C_PLATFORM, &c);
         EntitySet(&b, C_PLATFORM, &c);
+        // TODO(Tony): Add EntitySetColor
         a.render.sprite.setColor(sf::Color(255, 255, 255, 150));
         b.render.sprite.setColor(sf::Color(255, 255, 255, 100));
 
-        rWindow->setView(renderContext.worldView);
-        const sf::Vector2f
-            aPos = (isEditMode) ? editedEntityRef->render.sprite.getPosition() : renderContext.worldView.getCenter();
+        const sf::Vector2f aPos =
+            (isEditMode) ? editedEntityRef->render.sprite.getPosition() : rWindow->getView().getCenter();
         const sf::Vector2f bPos = aPos + editedEntityRef->platform.a;
 
-        a.render.sprite.setPosition(aPos);
-        b.render.sprite.setPosition(bPos);
-
-        rWindow->draw(a.render.sprite);
-        rWindow->draw(b.render.sprite);
-        rWindow->setView(cacheView);
+        EntitySetPos(&a, aPos);
+        EntitySetPos(&b, bPos);
+        DrawEntity(&a);
+        DrawEntity(&b);
     }
 
     ImGui::NewLine();
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
     if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
+        eWindow.context->editorHit.entity = ActionPlaceEntity(world, *editedEntityRef);
     }
     ImGui::SameLine();
     ImGui::BeginDisabled();

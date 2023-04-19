@@ -7,9 +7,9 @@
 #include "resource_manager.h"
 #include "input.h"
 
-static void DrawPainterBrushSelection();
+static void DrawPainterBrushSelection(editor_context_t* editorContext);
 
-void DrawPainterBrushSelection()
+void DrawPainterBrushSelection(editor_context_t* editorContext)
 {
     const ImGuiTreeNodeFlags treeFlags =
         ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -19,36 +19,35 @@ void DrawPainterBrushSelection()
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, alignment);
 
     if (ImGui::CollapsingHeader(ICON_MD_TUNE"Brush Modes:", treeFlags)) {
-        if (ImGui::Selectable(ICON_MD_DRAG_INDICATOR"\nNone", editorContext.brushMode == BRUSH_MODE_NONE, 0, size)) {
-            editorContext.brushMode = BRUSH_MODE_NONE;
+        if (ImGui::Selectable(ICON_MD_DRAG_INDICATOR"\nNone", editorContext->brushMode == BRUSH_MODE_NONE, 0, size)) {
+            editorContext->brushMode = BRUSH_MODE_NONE;
         }
         ImGui::SameLine();
-        if (ImGui::Selectable(ICON_MD_BRUSH"\nPaint", editorContext.brushMode == BRUSH_MODE_PAINT, 0, size)) {
-            editorContext.brushMode = BRUSH_MODE_PAINT;
+        if (ImGui::Selectable(ICON_MD_BRUSH"\nPaint", editorContext->brushMode == BRUSH_MODE_PAINT, 0, size)) {
+            editorContext->brushMode = BRUSH_MODE_PAINT;
         }
         ImGui::SameLine();
-        if (ImGui::Selectable(ICON_MD_DELETE"\nErase", editorContext.brushMode == BRUSH_MODE_ERASE, 0, size)) {
-            editorContext.brushMode = BRUSH_MODE_ERASE;
+        if (ImGui::Selectable(ICON_MD_DELETE"\nErase", editorContext->brushMode == BRUSH_MODE_ERASE, 0, size)) {
+            editorContext->brushMode = BRUSH_MODE_ERASE;
         }
     }
 
     if (ImGui::CollapsingHeader(ICON_MD_FORMAT_PAINT"Brush Types:", treeFlags)) {
-        if (ImGui::Selectable(ICON_MD_ADS_CLICK"\nClicky", editorContext.brushType == BRUSH_TYPE_CLICKY, 0, size)) {
-            editorContext.brushType = BRUSH_TYPE_CLICKY;
+        if (ImGui::Selectable(ICON_MD_ADS_CLICK"\nClicky", editorContext->brushType == BRUSH_TYPE_CLICKY, 0, size)) {
+            editorContext->brushType = BRUSH_TYPE_CLICKY;
         }
         ImGui::SameLine();
-        if (ImGui::Selectable(ICON_MD_MOUSE"\nWHEEE", editorContext.brushType == BRUSH_TYPE_WHEE, 0, size)) {
-            editorContext.brushType = BRUSH_TYPE_WHEE;
+        if (ImGui::Selectable(ICON_MD_MOUSE"\nWHEEE", editorContext->brushType == BRUSH_TYPE_WHEE, 0, size)) {
+            editorContext->brushType = BRUSH_TYPE_WHEE;
         }
     }
 
     ImGui::PopStyleVar();
 }
 
-void DrawTilePainter(editorwindow_t& eWindow)
+void DrawTilePainter(scene_context_t* world, editorwindow_t& eWindow)
 {
-    eWindow.isOpen = editorContext.mode == EDITOR_MODE_TILE;
-
+    eWindow.isOpen = eWindow.context->mode == EDITOR_MODE_TILE;
     ImGui::SetNextWindowPos(ImVec2(rWindow->getSize()), ImGuiCond_Once, ImVec2(1, 1));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
@@ -70,7 +69,7 @@ void DrawTilePainter(editorwindow_t& eWindow)
         isInit = true;
     }
 
-    DrawPainterBrushSelection();
+    DrawPainterBrushSelection(eWindow.context);
     ImGui::Separator();
 
     ImGui::SeparatorText("Entity Data");
@@ -91,12 +90,12 @@ void DrawTilePainter(editorwindow_t& eWindow)
 
     ImGui::SeparatorText("Select Graphics");
 
+    const unsigned int tileSize = world->tileSize;
     int count = 0;
     for (auto& spriteSlot: spriteSheets) {
         for (auto& frame: spriteSlot->spriteSheet->frames) {
             const sf::Texture& texture = ResTextureGet(frame.id.c_str());
-
-            if (ImGui::ImageButton(texture, sf::Vector2f(gridSize * textureScale, gridSize * textureScale), 1)) {
+            if (ImGui::ImageButton(texture, sf::Vector2f(tileSize * textureScale, tileSize * textureScale), 1)) {
                 defaultEntity.render.graphicsID = frame.id;
             }
 
@@ -111,19 +110,19 @@ void DrawTilePainter(editorwindow_t& eWindow)
     ImGuiIO& io = ImGui::GetIO();
     if (!(io.WantCaptureMouse || io.WantCaptureKeyboard)) {
         bool (* mouseInputFunction)(sf::Mouse::Button);
-        if (editorContext.brushType == BRUSH_TYPE_WHEE) {
+        if (eWindow.context->brushType == BRUSH_TYPE_WHEE) {
             mouseInputFunction = sf::Mouse::isButtonPressed;
-        } else if (editorContext.brushType == BRUSH_TYPE_CLICKY) {
+        } else if (eWindow.context->brushType == BRUSH_TYPE_CLICKY) {
             mouseInputFunction = isMousePressed;
         }
 
-        if (editorContext.brushMode == BRUSH_MODE_PAINT) {
+        if (eWindow.context->brushMode == BRUSH_MODE_PAINT) {
             if (mouseInputFunction(sf::Mouse::Left) && !defaultEntity.render.graphicsID.empty()) {
-                editorContext.editorHit.entity = ActionPlaceTile(defaultEntity);
+                eWindow.context->editorHit.entity = ActionPlaceTile(world, defaultEntity);
             }
-        } else if (editorContext.brushMode == BRUSH_MODE_ERASE) {
+        } else if (eWindow.context->brushMode == BRUSH_MODE_ERASE) {
             if (mouseInputFunction(sf::Mouse::Left)) {
-                ActionDeleteEntity(&editorContext.editorHit.entity);
+                ActionDeleteEntity(world, &eWindow.context->editorHit.entity);
             }
         }
     }

@@ -4,7 +4,7 @@
 #include "editor_imgui_utils.h"
 #include "resource_manager.h"
 
-void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
+void DrawPickupPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow)
 {
     ImGui::SetNextWindowPos(ImVec2(0, rWindow->getSize().y), ImGuiCond_Once, ImVec2(0, 1));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -12,10 +12,9 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
         return;
     }
 
-    static entity_t defaultEntity;
     static const auto spriteSheets =
         ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(HEALTH|AMMO|LIVE|LIFE)"), ASSET_TAG_PICKUP);
-
+    static entity_t defaultEntity;
     static bool isInit = false;
     if (!isInit) {
         EntityInit(&defaultEntity, "Logic_Treasure", RENDER_SPRITE);
@@ -29,10 +28,10 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
     }
 
     entity_t* editedEntityRef = &defaultEntity;
-    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_PICKUP
-        && editorContext.editorHit.entity->pickup.type != PICKUP_TREASURE;
+    bool isEditMode = eWindow.context->editorHit.entity && eWindow.context->editorHit.entity->type == C_PICKUP
+        && eWindow.context->editorHit.entity->pickup.type != PICKUP_TREASURE;
     if (isEditMode) {
-        editedEntityRef = editorContext.editorHit.entity;
+        editedEntityRef = eWindow.context->editorHit.entity;
         EntityUpdate(editedEntityRef, editedEntityRef);
     }
 
@@ -65,7 +64,7 @@ void DrawPickupPropertiesWindow(editorwindow_t& eWindow)
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
     if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
+        eWindow.context->editorHit.entity = ActionPlaceEntity(world, *editedEntityRef);
     }
     ImGui::SameLine();
     ImGui::BeginDisabled();

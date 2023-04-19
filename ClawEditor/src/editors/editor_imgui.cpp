@@ -1,4 +1,5 @@
 #include "imgui.h"
+#include "imgui-SFML.h"
 #include "imgui_internal.h"
 #include "fonts/IconsMaterialDesign.h"
 
@@ -10,73 +11,62 @@
 #include "sfml_key_map.h"
 #include "version.h"
 
-extern void ProgramCleanUp();
-static void EditorUpdateWindows();
-static void EditorRegisterWindow(const char* tab, const char* name, editorwindowCallback_t callback,
-                                 sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown, bool defaultState = false);
+static void EditorUpdateWindows(editor_context_t* editorContext, scene_context_t* world);
+static void EditorRegisterWindow(editor_context_t* editorContext, const char* tab, const char* name,
+                                 editorwindowCallback_t callback, sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown,
+                                 bool defaultState = false);
 
-void EditorInitImGuiWindows()
+void EditorInitImGuiWindows(editor_context_t* editorContext)
 {
-    EditorRegisterWindow("Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I);
-    EditorRegisterWindow("Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Treasure Properties", DrawTreasurePropertiesWindow);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Pickup Properties", DrawPickupPropertiesWindow);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties", DrawTimeObjPropertiesWindow);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Checkpoint Properties", DrawCheckpointPropertiesWindow);
-    EditorRegisterWindow("Tools", ICON_MD_VIEW_IN_AR "Eyecandy Properties", DrawEyeCandyPropertiesWindow);
-
-    EditorRegisterWindow("Help", "About", DrawAboutWindow);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Treasure Properties",
+                         DrawTreasurePropertiesWindow);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Pickup Properties", DrawPickupPropertiesWindow);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties",
+                         DrawTimeObjPropertiesWindow);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Checkpoint Properties",
+                         DrawCheckpointPropertiesWindow);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Eyecandy Properties",
+                         DrawEyeCandyPropertiesWindow);
+    EditorRegisterWindow(editorContext, "Help", "About", DrawAboutWindow);
 }
 
-void EditorUpdateImGuiEditors(render_context_t& renderContext, sf::Time deltaTime)
+void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t& renderContext,
+                              scene_context_t* world, sf::Time deltaTime)
 {
-    DrawMainMenuBar(renderContext);
-    DrawStatusBar();
-    EditorUpdateWindows();
+    ImGui::SFML::Update(*rWindow, deltaTime);
 
-    static float pressTimer = 0;
+    DrawMainMenuBar(editorContext, renderContext);
+    DrawStatusBar(editorContext);
+    EditorUpdateWindows(editorContext, world);
+
     static float dragTimer = 0;
-    pressTimer += deltaTime.asSeconds();
-
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-        return;
-    }
-
-    if (isMousePressed(sf::Mouse::Left)) {
-        if (pressTimer <= 0.5f) {
-            const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
-            const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos, renderContext.worldView);
-            SceneIsEntityHit(mouseViewPos, &editorContext.editorHit.entity);
-        } else {
-            editorContext.editorHit.entity = nullptr;
-        }
-        pressTimer = 0;
-    }
-
-    if (editorContext.mode == EDITOR_MODE_OBJ) {
+    if (editorContext->mode == EDITOR_MODE_OBJ) {
         (sf::Mouse::isButtonPressed(sf::Mouse::Left)) ? dragTimer += deltaTime.asSeconds() : dragTimer = 0;
-        if (dragTimer >= 0.1f && editorContext.editorHit.entity) {
-            ActionEntityMove(*editorContext.editorHit.entity);
+        if (dragTimer >= 0.1f && editorContext->editorHit.entity) {
+            ActionEntityMove(world, *editorContext->editorHit.entity);
         }
     }
+
+    ImGui::SFML::Render(*rWindow);
 }
 
-static void EditorUpdateWindows()
+static void EditorUpdateWindows(editor_context_t* editorContext, scene_context_t* world)
 {
-    for (auto& tabEditors: editorContext.editorsMap) {
+    for (auto& tabEditors: editorContext->editorsMap) {
         for (auto& eWindow: tabEditors.second) {
             if (!eWindow.isOpen || !eWindow.callback)
                 continue;
 
-            eWindow.callback(eWindow);
+            eWindow.callback(world, eWindow);
         }
     }
 }
 
-void DrawMainMenuBar(render_context_t& renderContext)
+void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderContext)
 {
-    auto& editors = editorContext.editorsMap;
+    auto& editors = editorContext->editorsMap;
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 5.0f));
     ImGui::BeginMainMenuBar();
@@ -99,22 +89,7 @@ void DrawMainMenuBar(render_context_t& renderContext)
         }
 
         if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
-            ProgramCleanUp();
             exit(0);
-        }
-
-        ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu(ICON_MD_EDIT "Edit")) {
-        if (ImGui::MenuItem(ICON_MD_DATA_OBJECT "Object Properties")) {
-
-        }
-        if (ImGui::MenuItem(ICON_MD_TERRAIN "Tile Properties")) {
-
-        }
-        for (auto& eWindow: editors["Edit"]) {
-            ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
 
         ImGui::EndMenu();
@@ -125,7 +100,7 @@ void DrawMainMenuBar(render_context_t& renderContext)
 
         }
 
-        ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties", nullptr, &renderContext.isDrawCollider);
+        ImGui::MenuItem(ICON_MD_TERRAIN "Show Tile Properties", nullptr, &renderContext.settings.isDrawTileCollider);
 
         for (auto& eWindow: editors["View"]) {
             ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
@@ -135,10 +110,6 @@ void DrawMainMenuBar(render_context_t& renderContext)
     }
 
     if (ImGui::BeginMenu(ICON_MD_HANDYMAN "Tools")) {
-        if (ImGui::MenuItem(ICON_MD_TERRAIN "Tiles")) {
-
-        }
-
         for (auto& eWindow: editors["Tools"]) {
             ImGui::MenuItem(eWindow.name.c_str(), sfmlKeyMap.at(eWindow.shortcutKey), &eWindow.isOpen);
         }
@@ -157,7 +128,7 @@ void DrawMainMenuBar(render_context_t& renderContext)
     ImGui::EndMainMenuBar();
 }
 
-void DrawStatusBar()
+void DrawStatusBar(editor_context_t* editorContext)
 {
     ImGuiWindowFlags window_flags;
     window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
@@ -169,20 +140,14 @@ void DrawStatusBar()
     }
 
     if (ImGui::BeginMenuBar()) {
-        ImVec2 textSize = ImGui::CalcTextSize(ICON_MD_TERRAIN
-                                              "Tile");
-        if (ImGui::Selectable(ICON_MD_TERRAIN
-                              "Tile", editorContext.mode == EDITOR_MODE_TILE, 0, textSize)) {
-            editorContext.mode = EDITOR_MODE_TILE;
-            editorContext.selectedEntity = nullptr;
+        ImVec2 textSize = ImGui::CalcTextSize(ICON_MD_TERRAIN"Tile");
+        if (ImGui::Selectable(ICON_MD_TERRAIN"Tile", editorContext->mode == EDITOR_MODE_TILE, 0, textSize)) {
+            editorContext->mode = EDITOR_MODE_TILE;
         }
 
-        textSize = ImGui::CalcTextSize(ICON_MD_DATA_OBJECT
-                                       "Object");
-        if (ImGui::Selectable(ICON_MD_VIEW_IN_AR
-                              "Object", editorContext.mode == EDITOR_MODE_OBJ, 0, textSize)) {
-            editorContext.mode = EDITOR_MODE_OBJ;
-            editorContext.selectedEntity = nullptr;
+        textSize = ImGui::CalcTextSize(ICON_MD_DATA_OBJECT"Object");
+        if (ImGui::Selectable(ICON_MD_VIEW_IN_AR"Object", editorContext->mode == EDITOR_MODE_OBJ, 0, textSize)) {
+            editorContext->mode = EDITOR_MODE_OBJ;
         }
         ImGui::EndMenuBar();
     }
@@ -190,7 +155,7 @@ void DrawStatusBar()
     ImGui::End();
 }
 
-void DrawAboutWindow(editorwindow_t& eWindow)
+void DrawAboutWindow(scene_context_t* world, editorwindow_t& eWindow)
 {
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::End();
@@ -205,16 +170,18 @@ void DrawAboutWindow(editorwindow_t& eWindow)
     ImGui::End();
 }
 
-static void EditorRegisterWindow(const char* tab, const char* identifier, editorwindowCallback_t callback,
-                                 sf::Keyboard::Key shortcutKey, bool defaultState)
+static void EditorRegisterWindow(editor_context_t* editorContext, const char* tab, const char* name,
+                                 editorwindowCallback_t callback, sf::Keyboard::Key shortcutKey,
+                                 bool defaultState)
 {
     editorwindow_t eWindow{
-        .name = identifier,
+        .name = name,
         .isOpen = defaultState,
         .shortcutKey = shortcutKey,
-        .callback = callback
+        .callback = callback,
+        .context = editorContext,
     };
 
-    editorContext.editorsMap[tab].push_back(eWindow);
-    printf("[INFO][Editor]: \"%s\" -> \"%s\" window registered successfully.\n", tab, identifier);
+    editorContext->editorsMap[tab].push_back(eWindow);
+    printf("[INFO][Editor]: \"%s\" -> \"%s\" window registered successfully.\n", tab, name);
 }

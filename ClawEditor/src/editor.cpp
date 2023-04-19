@@ -6,23 +6,20 @@
 #include "editor.h"
 #include "editors/editor_internal.h"
 #include "editors/editor_imgui.h"
-#include "editors/editor_inworld.h"
 #include "input.h"
 #include "renderer.h"
 #include "resource_manager.h"
 
-editor_context_t editorContext;
-
 static void EditorInitFont();
 
-void EditorInit()
+void EditorInit(editor_context_t* editorContext)
 {
     ImGui::SFML::Init(*rWindow);
     EditorInitFont();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
 
-    EditorInitImGuiWindows();
+    EditorInitImGuiWindows(editorContext);
 }
 
 static void EditorInitFont()
@@ -55,19 +52,19 @@ void EditorShutdown()
     ImGui::SFML::Shutdown();
 }
 
-void EditorEvent(sf::Event event)
+void EditorEvent(editor_context_t* editorContext, sf::Event event)
 {
+    assert(editorContext);
+
     ImGui::SFML::ProcessEvent(event);
 
-    if (ImGui::IsAnyItemFocused() || ImGui::IsAnyItemActive()) {
+    auto isDetectKey =
+        !ImGui::IsAnyItemFocused() && !ImGui::IsAnyItemActive() && event.type == sf::Event::KeyPressed;
+    if (!isDetectKey) {
         return;
     }
 
-    if (event.type != sf::Event::KeyPressed) {
-        return;
-    }
-
-    for (auto& tabEditors: editorContext.editorsMap) {
+    for (auto& tabEditors: editorContext->editorsMap) {
         for (auto& eWindow: tabEditors.second) {
             if (isKeyPressed(eWindow.shortcutKey)) {
                 eWindow.isOpen = !eWindow.isOpen;
@@ -75,14 +72,4 @@ void EditorEvent(sf::Event event)
             }
         }
     }
-}
-
-void UpdateAndRenderEditor(render_context_t& renderContext, sf::Time deltaTime)
-{
-    ImGui::SFML::Update(*rWindow, deltaTime);
-
-    EditorUpdateInWorldEditors(renderContext, deltaTime);
-    EditorUpdateImGuiEditors(renderContext, deltaTime);
-
-    ImGui::SFML::Render(*rWindow);
 }

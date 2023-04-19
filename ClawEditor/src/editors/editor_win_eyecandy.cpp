@@ -4,7 +4,7 @@
 #include "editor_imgui_utils.h"
 #include "resource_manager.h"
 
-void DrawEyeCandyPropertiesWindow(editorwindow_t& eWindow)
+void DrawEyeCandyPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow)
 {
     ImGui::SetNextWindowPos(ImVec2(0, rWindow->getSize().y), ImGuiCond_Once, ImVec2(0, 1));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -12,10 +12,9 @@ void DrawEyeCandyPropertiesWindow(editorwindow_t& eWindow)
         return;
     }
 
-    static entity_t defaultEntity;
     static const auto spriteSheets =
         ResGetAllAssetSlots(ASSET_TEXTURE, std::regex("(?!(HEALTH|AMMO|LIVE|LIFE))"), ASSET_TAG_EYECANDY);
-
+    static entity_t defaultEntity;
     static bool isInit = false;
     if (!isInit) {
         EntityInit(&defaultEntity, "Logic_Eyecandy", RENDER_SPRITE);
@@ -24,9 +23,9 @@ void DrawEyeCandyPropertiesWindow(editorwindow_t& eWindow)
     }
 
     entity_t* editedEntityRef = &defaultEntity;
-    bool isEditMode = editorContext.editorHit.entity && editorContext.editorHit.entity->type == C_NONE;
+    bool isEditMode = eWindow.context->editorHit.entity && eWindow.context->editorHit.entity->type == C_NONE;
     if (isEditMode) {
-        editedEntityRef = editorContext.editorHit.entity;
+        editedEntityRef = eWindow.context->editorHit.entity;
         EntityUpdate(editedEntityRef, editedEntityRef);
     }
 
@@ -41,7 +40,7 @@ void DrawEyeCandyPropertiesWindow(editorwindow_t& eWindow)
     ImGui::SeparatorText("");
     const ImVec2 addButtonSize(100, 20);
     if (ImGui::Button("Add", addButtonSize) && !editedEntityRef->render.graphicsID.empty()) {
-        editorContext.editorHit.entity = ActionPlaceEntity(*editedEntityRef);
+        eWindow.context->editorHit.entity = ActionPlaceEntity(world, *editedEntityRef);
     }
     ImGui::SameLine();
     ImGui::BeginDisabled();

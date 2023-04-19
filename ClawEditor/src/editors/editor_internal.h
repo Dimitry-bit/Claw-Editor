@@ -10,7 +10,8 @@
 
 using std::string;
 
-typedef void (* editorwindowCallback_t)(struct editorwindow_t& window);
+struct editor_context_t;
+typedef void (* editorwindowCallback_t)(scene_context_t* world, struct editorwindow_t& window);
 
 struct editorwindow_t;
 struct editor_hit_t;
@@ -36,6 +37,7 @@ struct editorwindow_t {
     bool isOpen;
     sf::Keyboard::Key shortcutKey;
     editorwindowCallback_t callback;
+    editor_context_t* context;
 };
 
 struct editor_hit_t {
@@ -48,9 +50,6 @@ struct editor_context_t {
     painter_brush_modes brushMode;
     painter_brush_types_t brushType;
     editor_hit_t editorHit;
-    entity_t* selectedEntity;
     std::stack<action_t> undoStack;
     std::stack<action_t> redoStack;
 };
-
-extern editor_context_t editorContext;

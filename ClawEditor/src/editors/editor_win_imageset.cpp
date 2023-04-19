@@ -4,7 +4,7 @@
 #include "editor_internal.h"
 #include "resource_manager.h"
 
-void DrawImageSet(editorwindow_t& eWindow)
+void DrawImageSet(scene_context_t* world, editorwindow_t& eWindow)
 {
     ImGui::SetNextWindowPos(ImVec2(rWindow->getSize() / (unsigned int) 2), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
     if (!ImGui::Begin(eWindow.name.c_str(), &eWindow.isOpen, ImGuiWindowFlags_NoDocking)) {
@@ -52,13 +52,8 @@ void DrawImageSet(editorwindow_t& eWindow)
             auto& metaData = selectedAsset->spriteSheet->frames[selectedFrame];
             ImGui::PushStyleColor(ImGuiCol_Text, colorLightGrey);
             ImGui::Text("FileName: %s\nFrameID: %s\nDimensions: x=%-3d y=%-3d w=%-3d h=%-3d\n",
-                        selectedAsset->header.fileName.c_str(),
-                        metaData.id.c_str(),
-                        metaData.area.left,
-                        metaData.area.top,
-                        metaData.area.width,
-                        metaData.area.height);
-
+                        selectedAsset->header.fileName.c_str(), metaData.id.c_str(), metaData.area.left,
+                        metaData.area.top, metaData.area.width, metaData.area.height);
             ImGui::PopStyleColor();
             ImGui::Separator();
 

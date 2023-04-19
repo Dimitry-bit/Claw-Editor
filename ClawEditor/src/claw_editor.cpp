@@ -17,7 +17,10 @@ const int initWindowHeight = 720;
 static void HandleEvent(render_context_t* renderContext, editor_context_t* editorContext);
 static void ProgramCleanUp(scene_context_t* world);
 
-static void UpdateAndRenderWindow(render_context_t* renderContext, scene_context_t* world, sf::Time deltaTime);
+static void UpdateAndRenderWindow(render_context_t* renderContext,
+                                  scene_context_t* world,
+                                  editor_context_t* editorContext,
+                                  sf::Time deltaTime);
 
 void ClawEditMain()
 {
@@ -29,15 +32,16 @@ void ClawEditMain()
 
     render_context_t renderContext;
     scene_context_t world;
+    editor_context_t editorContext;
 
     SceneAllocAssets(&world);
     RendererInit(&renderContext, initWindowWidth, initWindowHeight);
-    EditorInit();
+    EditorInit(&editorContext);
     SceneNavigationInit();
 
     sf::Clock deltaClock;
     while (window.isOpen()) {
-        UpdateAndRenderWindow(&renderContext, &world, deltaClock.restart());
+        UpdateAndRenderWindow(&renderContext, &world, &editorContext, deltaClock.restart());
     }
     ProgramCleanUp(&world);
 }
@@ -63,9 +67,11 @@ static void ProgramCleanUp(scene_context_t* world)
     ResUnloadAll();
 }
 
-static void UpdateAndRenderWindow(render_context_t* renderContext, scene_context_t* world, sf::Time deltaTime)
+static void UpdateAndRenderWindow(render_context_t* renderContext,
+                                  scene_context_t* world,
+                                  editor_context_t* editorContext,
+                                  sf::Time deltaTime)
 {
-    static editor_context_t editorContext;
     ImGuiIO& io = ImGui::GetIO();
     if (!io.WantCaptureMouse && !io.WantCaptureKeyboard) {
         static float pressTimer = 0;
@@ -74,26 +80,26 @@ static void UpdateAndRenderWindow(render_context_t* renderContext, scene_context
             if (pressTimer <= 0.5f) {
                 const sf::Vector2i mouseWindowPos = sf::Mouse::getPosition(*rWindow);
                 const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(mouseWindowPos);
-                SceneIsEntityHit(world, mouseViewPos, &editorContext.editorHit.entity);
+                SceneIsEntityHit(world, mouseViewPos, &editorContext->editorHit.entity);
             } else {
-                editorContext.editorHit.entity = nullptr;
+                editorContext->editorHit.entity = nullptr;
             }
             pressTimer = 0;
         }
     }
 
-    HandleEvent(renderContext, &editorContext);
+    HandleEvent(renderContext, editorContext);
     SceneNavigationUpdate(renderContext);
 
     rWindow->clear();
 
     rWindow->setView(renderContext->worldView);
     DrawWorld(renderContext, world);
-    EditorUpdateInWorldEditors(&editorContext, world);
-    EditorUpdateImGuiEditors(&editorContext, *renderContext, world, deltaTime);
+    EditorUpdateInWorldEditors(editorContext, world);
+    EditorUpdateImGuiEditors(editorContext, *renderContext, world, deltaTime);
 
     rWindow->setView(renderContext->uiView);
-    DrawMouseCoordinates(world);
+    DrawMouseCoordinates(renderContext, world);
     DrawFrameTime(deltaTime.asSeconds());
 
     rWindow->display();
