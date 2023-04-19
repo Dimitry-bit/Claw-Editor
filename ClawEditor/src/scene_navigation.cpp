@@ -11,8 +11,8 @@ float gameZoom = 1.0f;
 sf::Cursor cursorHand;
 sf::Cursor cursorArrow;
 
-static void SceneMovement(render_context_t& renderContext);
-static void SceneZoom(render_context_t& renderContext);
+static void SceneMovement(render_context_t* renderContext);
+static void SceneZoom(render_context_t* renderContext);
 
 void SceneNavigationInit()
 {
@@ -20,8 +20,10 @@ void SceneNavigationInit()
     cursorArrow.loadFromSystem(sf::Cursor::Arrow);
 }
 
-void SceneNavigationUpdate(render_context_t& renderContext)
+void SceneNavigationUpdate(render_context_t* renderContext)
 {
+    assert(renderContext);
+
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
         return;
@@ -31,7 +33,7 @@ void SceneNavigationUpdate(render_context_t& renderContext)
     SceneZoom(renderContext);
 }
 
-void SceneMovement(render_context_t& renderContext)
+void SceneMovement(render_context_t* renderContext)
 {
     static sf::Vector2i oldPos;
     sf::Vector2i currentPos;
@@ -39,9 +41,9 @@ void SceneMovement(render_context_t& renderContext)
     if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
         currentPos = sf::Mouse::getPosition(*rWindow);
         sf::Vector2f pos = rWindow->mapPixelToCoords(sf::Vector2i(oldPos.x - currentPos.x, oldPos.y - currentPos.y));
-        renderContext.worldView.move(pos.x / gameZoom, pos.y / gameZoom);
+        renderContext->worldView.move(pos.x / gameZoom, pos.y / gameZoom);
 
-        rWindow->setView(renderContext.worldView);
+        rWindow->setView(renderContext->worldView);
         oldPos = currentPos;
         rWindow->setMouseCursor(cursorHand);
     } else {
@@ -50,7 +52,7 @@ void SceneMovement(render_context_t& renderContext)
     }
 }
 
-void SceneZoom(render_context_t& renderContext)
+void SceneZoom(render_context_t* renderContext)
 {
     if (!IsMouseWheelScrolled() || GetMouseWheelScroll().wheel != sf::Mouse::Wheel::VerticalWheel) {
         return;
@@ -61,5 +63,5 @@ void SceneZoom(render_context_t& renderContext)
     sf::Vector2f viewSize = sf::Vector2f(rWindow->getSize());
     viewSize.x /= gameZoom;
     viewSize.y /= gameZoom;
-    renderContext.worldView.setSize(viewSize);
+    renderContext->worldView.setSize(viewSize);
 }
