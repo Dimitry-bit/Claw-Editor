@@ -21,7 +21,7 @@ void SceneAllocAssets(scene_context_t* world);
 void SceneDealloc(scene_context_t* world);
 
 sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos);
-inline sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos);
+sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos);
 
 entity_t* SceneGetTile(const scene_context_t* world, float x, float y);
 entity_t* SceneGetTile(const scene_context_t* world, const sf::Vector2f& pos);

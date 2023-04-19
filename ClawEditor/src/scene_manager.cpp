@@ -61,12 +61,12 @@ void SceneDealloc(scene_context_t* world)
     printf("[INFO][SceneManager]: Scene deallocated successfully.\n");
 }
 
-inline sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos)
+sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos)
 {
     return sf::Vector2u(viewPos / (float) world->tileSize);
 }
 
-inline sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos)
+sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos)
 {
     sf::Vector2u girdPos = SceneGetGridPos(world, viewPos);
     sf::Vector2f tileStartPos(girdPos.x * world->tileSize, girdPos.y * world->tileSize);
@@ -170,7 +170,7 @@ bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t**
 
 bool SceneIsEntityHit(const scene_context_t* world, const sf::Vector2f& point, entity_t** out)
 {
-    SceneIsEntityHit(world, point.x, point.y, out);
+    return SceneIsEntityHit(world, point.x, point.y, out);
 }
 
 void DrawWorld(const render_context_t* renderContext, const scene_context_t* world)

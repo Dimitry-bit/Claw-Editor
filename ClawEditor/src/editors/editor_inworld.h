@@ -5,8 +5,7 @@
 #include "editors/editor_internal.h"
 #include "renderer.h"
 
-void EditorUpdateInWorldEditors(const editor_context_t* editorContext, const scene_context_t* world,
-                                sf::Time deltaTime);
+void EditorUpdateInWorldEditors(const editor_context_t* editorContext, const scene_context_t* world);
 
 void DrawOnScreenSpriteData(const entity_t* entity);
 void DrawMouseCoordinates(const scene_context_t* world);

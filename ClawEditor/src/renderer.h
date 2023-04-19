@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SFML/Graphics.hpp"
+
 struct render_settings_t {
     bool isDrawTileCollider;
 };

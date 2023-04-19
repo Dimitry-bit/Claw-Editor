@@ -17,8 +17,7 @@ static std::map<tile_types_t, sf::Color> colorMap = {
     {TILE_GROUND, colliderGroundColor},
 };
 
-void EditorUpdateInWorldEditors(const editor_context_t* editorContext, const scene_context_t* world,
-                                sf::Time deltaTime)
+void EditorUpdateInWorldEditors(const editor_context_t* editorContext, const scene_context_t* world)
 {
     assert(editorContext);
 
@@ -27,9 +26,6 @@ void EditorUpdateInWorldEditors(const editor_context_t* editorContext, const sce
     if (editorContext->mode == EDITOR_MODE_TILE) {
         DrawGridMouseHover(world);
     }
-
-    DrawMouseCoordinates(world);
-    DrawFrameTime(deltaTime.asSeconds());
 }
 
 void DrawOnScreenSpriteData(const entity_t* entity)
@@ -57,11 +53,11 @@ void DrawOnScreenSpriteData(const entity_t* entity)
     DrawPivotPoint(entity);
 }
 
-void DrawMouseCoordinates(const scene_context_t* world)
+void DrawMouseCoordinates(const render_context_t* renderContext, const scene_context_t* world)
 {
     sf::Vector2i mousePosScreen = sf::Mouse::getPosition();
     sf::Vector2i mousePosWindow = sf::Mouse::getPosition(*rWindow);
-    sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
+    sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow), renderContext->worldView);
     sf::Vector2u mousePosGrid = SceneGetGridPos(world, mousePosView);
 
     sf::Text text;
