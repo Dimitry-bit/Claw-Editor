@@ -60,6 +60,20 @@ void SceneDealloc(scene_context_t* world)
     printf("[INFO][SceneManager]: Scene deallocated successfully.\n");
 }
 
+int ScenePopulatedTilesCount(const scene_context_t* world)
+{
+    int count = 0;
+    for (int y = 0; y < world->tileGridHeight; ++y) {
+        for (int x = 0; x < world->tileGridWidth; ++x) {
+            if (SceneGetTileWithIndex(world, x, y)) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
 sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos)
 {
     return sf::Vector2u(viewPos / (float) world->tileSize);

@@ -6,15 +6,25 @@
 #include "editor_internal.h"
 #include "editor_constants.h"
 #include "editor_imgui.h"
+#include "editor_actions.h"
 #include "renderer.h"
 #include "input.h"
 #include "sfml_key_map.h"
+#include "utility.h"
+#include "scene_serialization.h"
 #include "version.h"
+
+using std::string;
 
 static void EditorUpdateWindows(editor_context_t* editorContext, scene_context_t* world);
 static void EditorRegisterWindow(editor_context_t* editorContext, const char* tab, const char* name,
                                  editorwindowCallback_t callback, sf::Keyboard::Key shortcutKey = sf::Keyboard::Unknown,
                                  bool defaultState = false);
+
+static void ActionDeSerializeWorld(editor_context_t* editorContext, scene_context_t* world);
+static void ActionSerializeWorld(editor_context_t* editorContext, const scene_context_t* world,
+                                 const std::string& file);
+static void ActionNewDocument(editor_context_t* editorContext, scene_context_t* world);
 
 void EditorInitImGuiWindows(editor_context_t* editorContext)
 {
@@ -88,7 +98,17 @@ void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t*
         }
     }
 
-    DrawMainMenuBar(editorContext, *renderContext);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) &&
+        sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+        if (editorContext->saveFile.empty()) {
+            string s = FileDialogSaveFile("cscene (*.cscene)\0*.cscene\0");
+            ActionSerializeWorld(editorContext, world, s);
+        } else {
+            ActionSerializeWorld(editorContext, world, editorContext->saveFile);
+        }
+    }
+
+    DrawMainMenuBar(editorContext, *renderContext, world);
     DrawStatusBar(editorContext);
     EditorUpdateWindows(editorContext, world);
 
@@ -107,7 +127,7 @@ static void EditorUpdateWindows(editor_context_t* editorContext, scene_context_t
     }
 }
 
-void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderContext)
+void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderContext, scene_context_t* world)
 {
     auto& editors = editorContext->editorsMap;
 
@@ -115,16 +135,28 @@ void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderCo
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu(ICON_MD_INSERT_DRIVE_FILE "File")) {
         if (ImGui::MenuItem(ICON_MD_INSERT_DRIVE_FILE "New document")) {
-
+            ActionNewDocument(editorContext, world);
         }
         if (ImGui::MenuItem(ICON_MD_FILE_OPEN "Open")) {
-
+            std::string s(FileDialogOpenFile("cscene (*.cscene)\0*.cscene\0"));
+            if (!s.empty()) {
+                editorContext->saveFile = s;
+                ActionDeSerializeWorld(editorContext, world);
+            }
         }
+
         if (ImGui::MenuItem(ICON_MD_SAVE "Save")) {
-
+            if (editorContext->saveFile.empty()) {
+                string s = FileDialogSaveFile("cscene (*.cscene)\0*.cscene\0");
+                ActionSerializeWorld(editorContext, world, s);
+            } else {
+                ActionSerializeWorld(editorContext, world, editorContext->saveFile);
+            }
         }
-        if (ImGui::MenuItem(ICON_MD_SAVE_AS "Save As")) {
 
+        if (ImGui::MenuItem(ICON_MD_SAVE_AS "Save As")) {
+            string s(FileDialogSaveFile("cscene (*.cscene)\0*.cscene\0"));
+            ActionSerializeWorld(editorContext, world, s);
         }
 
         for (auto& eWindow: editors["Files"]) {
@@ -224,4 +256,48 @@ static void EditorRegisterWindow(editor_context_t* editorContext, const char* ta
 
     editorContext->editorsMap[tab].push_back(eWindow);
     printf("[INFO][Editor]: \"%s\" -> \"%s\" window registered successfully.\n", tab, name);
+}
+
+static void ActionDeSerializeWorld(editor_context_t* editorContext, scene_context_t* world)
+{
+    assert(world);
+    assert(editorContext);
+
+    editorContext->undoStack = std::stack<action_t>();
+    editorContext->redoStack = std::stack<action_t>();
+    editorContext->editorHit.entity = nullptr;
+    editorContext->editorHit.mouseViewPos = sf::Vector2f(0, 0);
+
+    SceneDealloc(world);
+    SceneDeserialize(world, editorContext->saveFile);
+}
+
+static void ActionSerializeWorld(editor_context_t* editorContext, const scene_context_t* world, const std::string& file)
+{
+    assert(world);
+    assert(editorContext);
+
+    if (file.empty()) {
+        return;
+    }
+
+    if (file.find(".cscene")) {
+        editorContext->saveFile = file;
+    } else {
+        editorContext->saveFile = file + ".cscene";
+    }
+
+    SceneSerialize(world, editorContext->saveFile);
+}
+
+static void ActionNewDocument(editor_context_t* editorContext, scene_context_t* world)
+{
+    editorContext->editorHit.entity = nullptr;
+    editorContext->undoStack = std::stack<action_t>();
+    editorContext->redoStack = std::stack<action_t>();
+    editorContext->editorHit.entity = nullptr;
+    editorContext->editorHit.mouseViewPos = sf::Vector2f(0, 0);
+    editorContext->saveFile.clear();
+
+    SceneDealloc(world);
 }

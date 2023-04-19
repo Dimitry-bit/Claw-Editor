@@ -53,4 +53,5 @@ struct editor_context_t {
     editor_hit_t editorHit;
     std::stack<action_t> undoStack;
     std::stack<action_t> redoStack;
+    string saveFile;
 };

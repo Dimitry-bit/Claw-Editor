@@ -19,6 +19,7 @@ struct scene_context_t {
 
 void SceneAllocAssets(scene_context_t* world);
 void SceneDealloc(scene_context_t* world);
+int ScenePopulatedTilesCount(const scene_context_t* world);
 
 sf::Vector2u SceneGetGridPos(const scene_context_t* world, const sf::Vector2f& viewPos);
 sf::Vector2f SceneGetTileStartPos(const scene_context_t* world, const sf::Vector2f& viewPos);

@@ -5,7 +5,7 @@
 void EditorInitImGuiWindows(editor_context_t* editorContext);
 void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t* renderContext,
                               scene_context_t* world, sf::Time deltaTime);
-void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderContext);
+void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderContext, scene_context_t* world);
 void DrawStatusBar(editor_context_t* editorContext);
 void DrawAboutWindow(scene_context_t* world, editorwindow_t& eWindow);
 
