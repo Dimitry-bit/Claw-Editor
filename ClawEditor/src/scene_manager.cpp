@@ -98,25 +98,27 @@ entity_t* SceneGetTileWithIndex(const scene_context_t* world, int x, int y)
     return result;
 }
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
+bool SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
 {
     if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
         printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
-        return;
+        return false;
     }
 
-    entity_t* e = SceneGetTileWithPos(world, x, y);
+    entity_t* e = SceneGetTileWithIndex(world, x, y);
     if (e) {
+        SceneRemoveEntity(world, e);
         EntityDealloc(&e);
     }
 
     world->tileGrid[y * world->tileGridWidth + x] = entity;
     printf("[INFO][SceneManager]: Tile Placed.\n");
+    return true;
 }
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2i& tilePos)
+bool SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2i& tilePos)
 {
-    SceneAddTile(world, entity, tilePos.x, tilePos.y);
+    return SceneAddTile(world, entity, tilePos.x, tilePos.y);
 }
 
 void SceneAddObject(scene_context_t* world, entity_t* entity)
@@ -151,6 +153,31 @@ entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
     }
 
     return nullptr;
+}
+
+bool SceneIsValidTile(const scene_context_t* world, int x, int y)
+{
+    return (x >= 0 && x < MAX_GRID_SIZE) && (y >= 0 && y < MAX_GRID_SIZE);
+}
+
+bool SceneIsValidTile(const scene_context_t* world, const sf::Vector2i& pos)
+{
+    return SceneIsValidTile(world, pos.x, pos.y);
+}
+
+bool SceneIsTileOccupied(const scene_context_t* world, int x, int y)
+{
+    if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
+        printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
+        return true;
+    }
+
+    return SceneGetTileWithIndex(world, x, y);
+}
+
+bool SceneIsTileOccupied(const scene_context_t* world, const sf::Vector2i& pos)
+{
+    return SceneIsTileOccupied(world, pos.x, pos.y);
 }
 
 bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out)

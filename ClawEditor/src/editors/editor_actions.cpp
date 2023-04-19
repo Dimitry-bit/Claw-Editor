@@ -9,15 +9,19 @@ entity_t* ActionPlaceTile(scene_context_t* world, const entity_t& entity)
     const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
     const sf::Vector2u girdPos = SceneGetGridPos(world, mouseViewPos);
     const sf::Vector2f placementPos = SceneGetTileStartPos(world, mouseViewPos);
+    entity_t* e = nullptr;
 
-    entity_t* e = EntityAlloc();
-    assert(e);
+    if (SceneIsValidTile(world, sf::Vector2i(girdPos))) {
+        e = EntityAlloc();
+        assert(e);
 
-    EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
-    EntitySet(e, entity.type, &entity.tile);
-    EntitySetPos(e, placementPos);
+        EntityInit(e, entity.logic, entity.render.type, entity.render.graphicsID);
+        EntitySet(e, entity.type, &entity.tile);
+        EntitySetPos(e, placementPos);
 
-    SceneAddTile(world, e, sf::Vector2i(girdPos));
+        SceneAddTile(world, e, sf::Vector2i(girdPos));
+    }
+
     return e;
 }
 

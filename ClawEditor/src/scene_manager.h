@@ -27,11 +27,15 @@ entity_t* SceneGetTileWithIndex(const scene_context_t* world, int x, int y);
 entity_t* SceneGetTileWithPos(const scene_context_t* world, float x, float y);
 entity_t* SceneGetTileWithPos(const scene_context_t* world, const sf::Vector2f& pos);
 
-void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y);
-void SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2i& tilePos);
+bool SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y);
+bool SceneAddTile(scene_context_t* world, entity_t* entity, const sf::Vector2i& tilePos);
 void SceneAddObject(scene_context_t* world, entity_t* entity);
 entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity);
 
+bool SceneIsValidTile(const scene_context_t* world, int x, int y);
+bool SceneIsValidTile(const scene_context_t* world, const sf::Vector2i& pos);
+bool SceneIsTileOccupied(const scene_context_t* world, int x, int y);
+bool SceneIsTileOccupied(const scene_context_t* world, const sf::Vector2i& pos);
 bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out);
 bool SceneIsEntityHit(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
 
