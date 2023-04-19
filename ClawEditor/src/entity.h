@@ -19,6 +19,12 @@ struct entity_t {
     c_sound_t sound;
 };
 
+struct entity_transform {
+    sf::FloatRect bounds;
+    sf::Vector2f position;
+    sf::Vector2f origin;
+};
+
 entity_t* EntityAlloc();
 void EntityDealloc(entity_t** entity);
 
@@ -31,6 +37,7 @@ void EntitySetPos(entity_t* self, float x, float y);
 void EntitySetPos(entity_t* self, const sf::Vector2f& pos);
 void EntitySetOrigin(entity_t* self, float x, float y);
 void EntitySetOrigin(entity_t* self, const sf::Vector2f& origin);
+entity_transform EntityGetTransform(const entity_t* self);
 
 void EntityUpdate(entity_t* self, const entity_t* to);
 

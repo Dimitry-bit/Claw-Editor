@@ -121,6 +121,28 @@ void EntitySetOrigin(entity_t* self, const sf::Vector2f& origin)
     EntitySetOrigin(self, origin.x, origin.y);
 }
 
+entity_transform EntityGetTransform(const entity_t* self)
+{
+    assert(self);
+
+    entity_transform transform = {};
+    if (self->render.type == RENDER_SPRITE) {
+        transform.bounds = self->render.sprite.getGlobalBounds();
+        transform.position = self->render.sprite.getPosition();
+        transform.origin = self->render.sprite.getOrigin();
+    } else if (self->render.type == RENDER_RECTANGLE) {
+        transform.bounds = self->render.rectangleShape.getLocalBounds();
+        transform.position = self->render.rectangleShape.getPosition();
+        transform.origin = self->render.rectangleShape.getOrigin();
+    } else if (self->render.type == RENDER_CIRCLE) {
+        transform.bounds = self->render.circleShape.getLocalBounds();
+        transform.position = self->render.circleShape.getPosition();
+        transform.origin = self->render.circleShape.getOrigin();
+    }
+
+    return transform;
+}
+
 void DrawEntity(const entity_t* entity)
 {
     assert(entity);
