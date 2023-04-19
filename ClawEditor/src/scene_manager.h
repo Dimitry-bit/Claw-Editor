@@ -4,19 +4,30 @@
 #include "SFML/Graphics.hpp"
 
 #include "entity.h"
+#include "renderer.h"
 
 #define MAX_GRID_SIZE 50
 
-extern const int gridSize;
+struct scene_context_t {
+    unsigned int tileSize;
+    unsigned int tileGridWidth;
+    unsigned int tileGridHeight;
 
-void SceneAllocAssets();
-void SceneInitGrid();
-void SceneDealloc();
+    entity_t** tileGrid;
+    std::list<entity_t*> objects;
+};
 
-const std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_GRID_SIZE>& SceneGetTileGrid();
-const std::list<entity_t*>& SceneGetEntities();
-entity_t* SceneGetTile(const sf::Vector2u& pos);
-void SceneAddTile(entity_t* entity, int x, int y);
-void SceneAddObject(entity_t* entity);
-void SceneRemoveEntity(const entity_t* const entity);
-bool SceneIsEntityHit(const sf::Vector2f& point, entity_t** out);
+void SceneAllocAssets(scene_context_t* world);
+void SceneDealloc(scene_context_t* world);
+
+entity_t* SceneGetTile(const scene_context_t* world, float x, float y);
+entity_t* SceneGetTile(const scene_context_t* world, const sf::Vector2f& pos);
+
+void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y);
+void SceneAddObject(scene_context_t* world, entity_t* entity);
+entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity);
+
+bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out);
+bool SceneIsEntityHit(const scene_context_t* world, const sf::Vector2f& point, entity_t** out);
+
+void DrawWorld(const render_context_t* renderContext, const scene_context_t* world);

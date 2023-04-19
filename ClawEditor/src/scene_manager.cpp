@@ -1,20 +1,19 @@
 #include <cassert>
+#include <cmath>
 
 #include "scene_manager.h"
+#include "renderer.h"
 #include "resource_manager.h"
+#include "editors/editor_inworld.h"
 #include "entity.h"
 
-struct scene_context_t {
-    std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_GRID_SIZE> tileGrid;
-    std::list<entity_t*> objects;
-};
-
-static scene_context_t sceneContext;
-
-const int gridSize = 64;
-
-void SceneAllocAssets()
+void SceneAllocAssets(scene_context_t* world)
 {
+    world->tileGridWidth = MAX_GRID_SIZE;
+    world->tileGridHeight = MAX_GRID_SIZE;
+    world->tileSize = 64;
+    world->tileGrid = new entity_t* [world->tileGridWidth * world->tileGridHeight];
+
     AssetPushType(ASSET_SPRITESHEET);
     ResLoadFromFile("tilesets/LEVEL1_TILES.png", ASSET_TAG_TILE);
     ResLoadFromFile("objects/LEVEL1_OBJECTS.png", ASSET_TAG_OBJ | ASSET_TAG_EYECANDY);
@@ -45,109 +44,152 @@ void SceneAllocAssets()
     ResTextureLoadFromSpriteSheet("objects/CRATES.png", ASSET_TAG_OBJ | ASSET_TAG_ANIMATION | ASSET_TAG_EYECANDY);
 }
 
-void SceneInitGrid()
+void SceneDealloc(scene_context_t* world)
 {
-}
-
-void SceneDealloc()
-{
-    for (int i = 0; i < MAX_GRID_SIZE; ++i) {
-        for (int j = 0; j < MAX_GRID_SIZE; ++j) {
-            EntityDealloc(&sceneContext.tileGrid[i][j]);
+    for (int y = 0; y < world->tileGridHeight; ++y) {
+        for (int x = 0; x < world->tileGridWidth; ++x) {
+            EntityDealloc(&world->tileGrid[y * world->tileGridWidth + x]);
         }
     }
+    delete world->tileGrid;
 
-    for (auto it = sceneContext.objects.begin(); it != sceneContext.objects.end(); ++it) {
-        EntityDealloc(&*it);
+    for (auto& object: world->objects) {
+        EntityDealloc(&object);
     }
-    sceneContext.objects.clear();
+    world->objects.clear();
 
     printf("[INFO][SceneManager]: Scene deallocated successfully.\n");
 }
 
-const std::array<std::array<entity_t*, MAX_GRID_SIZE>, MAX_GRID_SIZE>& SceneGetTileGrid()
+entity_t* SceneGetTile(const scene_context_t* world, const sf::Vector2f& pos)
 {
-    return sceneContext.tileGrid;
+    return SceneGetTile(world, pos.x, pos.y);
 }
 
-const std::list<entity_t*>& SceneGetEntities()
+entity_t* SceneGetTile(const scene_context_t* world, float x, float y)
 {
-    return sceneContext.objects;
-}
+    entity_t* result = nullptr;
+    int gridPosX = (int) roundf(x / (float) world->tileSize);
+    int gridPosY = (int) roundf(y / (float) world->tileSize);
 
-entity_t* SceneGetTile(const sf::Vector2u& pos)
-{
-    const sf::Vector2u gridPos = pos / (unsigned int) gridSize;
-
-    if (!(gridPos.x >= 0 && gridPos.x < MAX_GRID_SIZE) || !(gridPos.y >= 0 && gridPos.y < MAX_GRID_SIZE)) {
-        return nullptr;
+    if (gridPosX >= 0 && gridPosX < MAX_GRID_SIZE &&
+        gridPosY >= 0 && gridPosY < MAX_GRID_SIZE) {
+        result = world->tileGrid[gridPosY * world->tileGridWidth + gridPosX];
     }
 
-    return sceneContext.tileGrid[gridPos.x][gridPos.y];
+    return result;
 }
 
-void SceneAddTile(entity_t* entity, int x, int y)
+void SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
 {
     if (!(x >= 0 && x < MAX_GRID_SIZE) || !(y >= 0 && y < MAX_GRID_SIZE)) {
         printf("[ERROR][SceneManager]: Tile grid out of bound access.\n");
         return;
     }
 
-    if (sceneContext.tileGrid[x][y]) {
-        EntityDealloc(&sceneContext.tileGrid[x][y]);
+    entity_t* e = SceneGetTile(world, x, y);
+    if (e) {
+        EntityDealloc(&e);
     }
 
-    sceneContext.tileGrid[x][y] = entity;
+    world->tileGrid[y * world->tileGridWidth + x] = entity;
     printf("[INFO][SceneManager]: Tile Placed.\n");
 }
 
-void SceneAddObject(entity_t* entity)
+void SceneAddObject(scene_context_t* world, entity_t* entity)
 {
     assert(entity);
-    sceneContext.objects.push_back(entity);
+
+    world->objects.push_back(entity);
     printf("[INFO][SceneManager]: Object Placed.\n");
 }
 
-void SceneRemoveEntity(const entity_t* const entity)
+entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
 {
     assert(entity);
 
-    for (int i = 0; i < MAX_GRID_SIZE; ++i) {
-        for (int j = 0; j < MAX_GRID_SIZE; ++j) {
-            if (sceneContext.tileGrid[i][j] == entity) {
-                sceneContext.tileGrid[i][j] = nullptr;
+    for (int x = 0; x < MAX_GRID_SIZE; ++x) {
+        for (int y = 0; y < MAX_GRID_SIZE; ++y) {
+            entity_t* e = SceneGetTile(world, x, y);
+            if (e == entity) {
                 printf("[Info][SceneManager]: Entity removed.\n");
-                return;
+                return e;
             }
         }
     }
 
-    for (auto it = sceneContext.objects.begin(); it != sceneContext.objects.end(); ++it) {
+    for (auto it = world->objects.begin(); it != world->objects.end(); ++it) {
         if (*it == entity) {
-            sceneContext.objects.erase(it);
+            entity_t* obj = *it;
+            world->objects.erase(it);
             printf("[Info][SceneManager]: Entity removed.\n");
-            return;
+            return obj;
         }
     }
+
+    return nullptr;
 }
 
-bool SceneIsEntityHit(const sf::Vector2f& point, entity_t** out)
+bool SceneIsEntityHit(const scene_context_t* world, float x, float y, entity_t** out)
 {
-    if (!out) {
-        return false;
-    }
+    entity_t* e = SceneGetTile(world, x, y);
+    bool isHit = (e != nullptr);
 
-    *out = SceneGetTile(sf::Vector2u(point));
-    if (*out) {
-        return true;
-    }
-
-    for (auto& entity: sceneContext.objects) {
-        if (entity && entity->render.sprite.getGlobalBounds().contains(point)) {
-            *out = entity;
-            return true;
+    for (auto it = world->objects.rbegin(); it != world->objects.rend(); ++it) {
+        entity_t* entity = *it;
+        if (entity->render.sprite.getGlobalBounds().contains(x, y)) {
+            e = entity;
+            isHit = true;
+            break;
         }
     }
 
-    return false;
+    if (out) {
+        *out = e;
+    }
+
+    return isHit;
+}
+
+bool SceneIsEntityHit(const scene_context_t* world, const sf::Vector2f& point, entity_t** out)
+{
+    SceneIsEntityHit(world, point.x, point.y, out);
+}
+
+void DrawWorld(const render_context_t* renderContext, const scene_context_t* world)
+{
+    assert(renderContext);
+    assert(world);
+
+    const sf::Vector2f drawCenter = rWindow->getView().getCenter();
+    const sf::Vector2f viewSize = rWindow->getView().getSize();
+    const float width = viewSize.x / 2;
+    const float height = viewSize.y / 2;
+    const int size = world->tileSize;
+
+    int fromX = (drawCenter.x - width) / size - 2;
+    int toX = (drawCenter.x + width) / size + 2;
+    int fromY = (drawCenter.y - height) / size - 2;
+    int toY = (drawCenter.y + height) / size + 2;
+    fromX = std::clamp(fromX, 0, MAX_GRID_SIZE - 1);
+    toX = std::clamp(toX, 0, MAX_GRID_SIZE - 1);
+    fromY = std::clamp(fromY, 0, MAX_GRID_SIZE - 1);
+    toY = std::clamp(toY, 0, MAX_GRID_SIZE - 1);
+
+    for (int x = fromX; x < toX; ++x) {
+        for (int y = fromY; y < toY; ++y) {
+            entity_t* tile = SceneGetTile(world, x, y);
+            if (!tile)
+                continue;
+
+            DrawEntity(tile);
+            if (renderContext->settings.isDrawCollider) {
+                DrawTileInfo(tile);
+            }
+        }
+    }
+
+    for (auto& entity: world->objects) {
+        DrawEntity(entity);
+    }
 }
