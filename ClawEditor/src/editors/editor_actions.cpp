@@ -54,12 +54,12 @@ void ActionDeleteEntity(scene_context_t* world, entity_t** hitEntityPtr)
 void ActionEntityMove(scene_context_t* world, entity_t& entity)
 {
     const sf::Vector2f mouseViewPos = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
-    const sf::Vector2u girdPos = SceneGetGridPos(world, mouseViewPos);
     const sf::Vector2f gridSnapPos = SceneGetTileStartPos(world, mouseViewPos);
 
-//    if (isSnapToGrid) {
-//    EntitySetPos(&entity, gridSnapPos);
-//    } else {
-    EntitySetPos(&entity, mouseViewPos);
-//    }
+    bool isSnapToGrid = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+    if (isSnapToGrid) {
+        EntitySetPos(&entity, gridSnapPos);
+    } else {
+        EntitySetPos(&entity, mouseViewPos);
+    }
 }
