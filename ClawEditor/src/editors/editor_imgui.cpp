@@ -89,6 +89,7 @@ void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderCo
         }
 
         if (ImGui::MenuItem(ICON_MD_CLOSE "Close")) {
+            // TODO(Tony): Free Memory
             exit(0);
         }
 
