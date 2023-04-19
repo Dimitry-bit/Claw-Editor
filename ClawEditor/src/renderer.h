@@ -1,25 +1,15 @@
 #pragma once
 
-#include <vector>
-#include "SFML/Graphics.hpp"
-
-#include "scene_manager.h"
-
-using std::string;
-
-extern sf::RenderWindow* rWindow;
+struct render_settings_t {
+    bool isDrawTileCollider;
+};
 
 struct render_context_t {
     sf::View worldView;
     sf::View uiView;
-    bool isDrawCollider;
-    struct {
-        std::vector<string> tileNames;
-        std::vector<string> treasureNames;
-        std::vector<string> pickUpNames;
-    } assetContext;
+    render_settings_t settings;
 };
 
-void RendererInit(int rWidth, int rHeight);
-void UpdateAndRenderWindow(sf::Time deltaTime);
-render_context_t& GetRenderContext();
+extern sf::RenderWindow* rWindow;
+
+void RendererInit(render_context_t* renderContext, int rWidth, int rHeight);

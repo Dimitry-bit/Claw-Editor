@@ -183,7 +183,7 @@ void DrawWorld(const render_context_t* renderContext, const scene_context_t* wor
                 continue;
 
             DrawEntity(tile);
-            if (renderContext->settings.isDrawCollider) {
+            if (renderContext->settings.isDrawTileCollider) {
                 DrawTileInfo(tile);
             }
         }
