@@ -29,7 +29,9 @@ void EditorInitImGuiWindows(editor_context_t* editorContext)
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Checkpoint Properties",
                          DrawCheckpointPropertiesWindow, sf::Keyboard::C);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Eyecandy Properties",
-                         DrawEyeCandyPropertiesWindow, sf::Keyboard::E);
+                         DrawEyeCandyPropertiesWindow, sf::Keyboard::M);
+    EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Enemy Properties",
+                         DrawEnemyPropertiesWindow, sf::Keyboard::E);
     EditorRegisterWindow(editorContext, "Help", "About", DrawAboutWindow);
 }
 

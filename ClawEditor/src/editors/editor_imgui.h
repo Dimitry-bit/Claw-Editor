@@ -16,3 +16,4 @@ void DrawPickupPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow)
 void DrawTimeObjPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow);
 void DrawCheckpointPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow);
 void DrawEyeCandyPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow);
+void DrawEnemyPropertiesWindow(scene_context_t* world, editorwindow_t& eWindow);
