@@ -31,7 +31,7 @@ void EditorInitImGuiWindows(editor_context_t* editorContext)
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_COLLECTIONS "Image Set", DrawImageSet, sf::Keyboard::I);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_BRUSH "Tile Painter", DrawTilePainter, sf::Keyboard::T);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Treasure Properties",
-                         DrawTreasurePropertiesWindow);
+                         DrawTreasurePropertiesWindow, sf::Keyboard::N);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Pickup Properties", DrawPickupPropertiesWindow,
                          sf::Keyboard::P);
     EditorRegisterWindow(editorContext, "Tools", ICON_MD_VIEW_IN_AR "Timed Object Properties",
