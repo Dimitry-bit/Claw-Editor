@@ -97,6 +97,11 @@ void DrawGridMouseHover(const scene_context_t* world)
     sf::Vector2f mousePosView = rWindow->mapPixelToCoords(sf::Mouse::getPosition(*rWindow));
     sf::Vector2f tilePos = SceneGetTileStartPos(world, mousePosView);
 
+    if (!(tilePos.x >= 0 && tilePos.x < world->tileSize * world->tileGridWidth) ||
+        !(tilePos.y >= 0 && tilePos.y < world->tileSize * world->tileGridHeight)) {
+        return;
+    }
+
     static sf::RectangleShape mouseRect(sf::Vector2f(world->tileSize, world->tileSize));
     mouseRect.setFillColor(hoverFillColor);
     mouseRect.setOutlineColor(hoverFrameColor);

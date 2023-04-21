@@ -295,9 +295,9 @@ void DrawWorld(const render_context_t* renderContext, const scene_context_t* wor
     int toY = (drawCenter.y + height) / world->tileSize + 2;
 
     fromX = std::clamp(fromX, 0, (int) world->tileGridWidth - 1);
-    toX = std::clamp(toX, 0, (int) world->tileGridWidth - 1);
+    toX = std::clamp(toX, 0, (int) world->tileGridWidth);
     fromY = std::clamp(fromY, 0, (int) world->tileGridHeight - 1);
-    toY = std::clamp(toY, 0, (int) world->tileGridHeight - 1);
+    toY = std::clamp(toY, 0, (int) world->tileGridHeight);
 
     for (int i = 0; i < world->tileMapCount - 1; ++i) {
         for (int x = fromX; x < toX; ++x) {
