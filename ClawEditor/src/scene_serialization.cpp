@@ -72,21 +72,24 @@ void SceneSerialize(const scene_context_t* world, const std::string& file)
     fwrite(&world->tileGridWidth, sizeof(world->tileGridWidth), 1, fp);
     fwrite(&world->tileGridHeight, sizeof(world->tileGridHeight), 1, fp);
     fwrite(&world->tileSize, sizeof(world->tileSize), 1, fp);
-    int count = ScenePopulatedTilesCount(world);
-    fwrite(&count, sizeof(count), 1, fp);
-    for (int y = 0; y < world->tileGridHeight; ++y) {
-        for (int x = 0; x < world->tileGridWidth; ++x) {
-            entity_t* tile = SceneGetTileWithIndex(world, x, y);
-            if (!tile) {
-                continue;
+    fwrite(&world->tileMapCount, sizeof(world->tileMapCount), 1, fp);
+    for (int i = 0; i < world->tileMapCount; ++i) {
+        int count = ScenePopulatedTilesCount(world, i);
+        fwrite(&count, sizeof(count), 1, fp);
+        for (int y = 0; y < world->tileGridHeight; ++y) {
+            for (int x = 0; x < world->tileGridWidth; ++x) {
+                entity_t* tile = SceneGetTileWithIndex(world, i, x, y);
+                if (!tile) {
+                    continue;
+                }
+                fwrite(&x, sizeof(x), 1, fp);
+                fwrite(&y, sizeof(y), 1, fp);
+                WriteEntityData(tile, fp);
             }
-            fwrite(&x, sizeof(x), 1, fp);
-            fwrite(&y, sizeof(y), 1, fp);
-            WriteEntityData(tile, fp);
         }
     }
 
-    count = world->objects.size();
+    int count = world->objects.size();
     fwrite(&count, sizeof(count), 1, fp);
     for (auto& entity: world->objects) {
         WriteEntityData(entity, fp);
@@ -163,19 +166,24 @@ void SceneDeserialize(scene_context_t* world, const std::string& file)
     fread(&world->tileGridWidth, sizeof(world->tileGridWidth), 1, fp);
     fread(&world->tileGridHeight, sizeof(world->tileGridHeight), 1, fp);
     fread(&world->tileSize, sizeof(world->tileSize), 1, fp);
-    int count;
-    fread(&count, sizeof(count), 1, fp);
-    while (count-- > 0) {
-        int x, y;
-        fread(&x, sizeof(x), 1, fp);
-        fread(&y, sizeof(y), 1, fp);
-        entity_t* entity = EntityAlloc();
-        if (entity) {
-            ReadEntityData(entity, fp);
-            SceneAddTile(world, entity, x, y);
+    fread(&world->tileMapCount, sizeof(world->tileMapCount), 1, fp);
+    for (int i = 0; i < world->tileMapCount; ++i) {
+        int count;
+        fread(&count, sizeof(count), 1, fp);
+        SceneSetTileIndex(world, i);
+        while (count-- > 0) {
+            int x, y;
+            fread(&x, sizeof(x), 1, fp);
+            fread(&y, sizeof(y), 1, fp);
+            entity_t* entity = EntityAlloc();
+            if (entity) {
+                ReadEntityData(entity, fp);
+                SceneAddTile(world, entity, x, y);
+            }
         }
     }
 
+    int count;
     fread(&count, sizeof(count), 1, fp);
     while (count--) {
         entity_t* entity = EntityAlloc();

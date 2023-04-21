@@ -45,12 +45,16 @@ void SceneAllocAssets(scene_context_t* world)
 
 void SceneDealloc(scene_context_t* world)
 {
-    for (int y = 0; y < world->tileGridHeight; ++y) {
-        for (int x = 0; x < world->tileGridWidth; ++x) {
-            EntityDealloc(&world->tileGrid[y * world->tileGridWidth + x]);
+    assert(world);
+
+    for (int i = 0; i < world->tileMapCount; ++i) {
+        tilemap_t* tileMap = &world->tileMaps[i];
+        for (int y = 0; y < world->tileGridHeight; ++y) {
+            for (int x = 0; x < world->tileGridWidth; ++x) {
+                EntityDealloc(&tileMap->tileGrid[y * world->tileGridWidth + x]);
+            }
         }
     }
-//    delete world->tileGrid;
 
     for (auto& object: world->objects) {
         EntityDealloc(&object);
@@ -60,12 +64,12 @@ void SceneDealloc(scene_context_t* world)
     printf("[INFO][SceneManager]: Scene deallocated successfully.\n");
 }
 
-int ScenePopulatedTilesCount(const scene_context_t* world)
+int ScenePopulatedTilesCount(const scene_context_t* world, int tileMapIndex)
 {
     int count = 0;
     for (int y = 0; y < world->tileGridHeight; ++y) {
         for (int x = 0; x < world->tileGridWidth; ++x) {
-            if (SceneGetTileWithIndex(world, x, y)) {
+            if (SceneGetTileWithIndex(world, tileMapIndex, x, y)) {
                 count++;
             }
         }
@@ -99,18 +103,20 @@ entity_t* SceneGetTileWithPos(const scene_context_t* world, float x, float y)
 
     if (gridPosX >= 0 && gridPosX < world->tileGridWidth &&
         gridPosY >= 0 && gridPosY < world->tileGridHeight) {
-        result = world->tileGrid[gridPosY * world->tileGridWidth + gridPosX];
+        tilemap_t* tileMap = &world->tileMaps[world->tileMapIndex];
+        result = tileMap->tileGrid[gridPosY * world->tileGridWidth + gridPosX];
     }
 
     return result;
 }
 
-entity_t* SceneGetTileWithIndex(const scene_context_t* world, int x, int y)
+entity_t* SceneGetTileWithIndex(const scene_context_t* world, int tileMapIndex, int x, int y)
 {
     entity_t* result = nullptr;
     if (x >= 0 && x < world->tileGridWidth &&
         y >= 0 && y < world->tileGridHeight) {
-        result = world->tileGrid[y * world->tileGridWidth + x];
+        tilemap_t* tileMap = &world->tileMaps[tileMapIndex];
+        result = tileMap->tileGrid[y * world->tileGridWidth + x];
     }
 
     return result;
@@ -123,13 +129,14 @@ bool SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
         return false;
     }
 
-    entity_t* e = SceneGetTileWithIndex(world, x, y);
+    entity_t* e = SceneGetTileWithIndex(world, world->tileMapIndex, x, y);
     if (e) {
         SceneRemoveEntity(world, e);
         EntityDealloc(&e);
     }
 
-    world->tileGrid[y * world->tileGridWidth + x] = entity;
+    tilemap_t* tileMap = &world->tileMaps[world->tileMapIndex];
+    tileMap->tileGrid[y * world->tileGridWidth + x] = entity;
     printf("[INFO][SceneManager]: Tile Placed.\n");
     return true;
 }
@@ -153,10 +160,11 @@ entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
 
     for (int y = 0; y < world->tileGridHeight; ++y) {
         for (int x = 0; x < world->tileGridWidth; ++x) {
-            entity_t* e = SceneGetTileWithIndex(world, x, y);
+            entity_t* e = SceneGetTileWithIndex(world, world->tileMapIndex, x, y);
             if (e == entity) {
                 printf("[Info][SceneManager]: Entity removed.\n");
-                world->tileGrid[y * world->tileGridWidth + x] = nullptr;
+                tilemap_t* tileMap = &world->tileMaps[world->tileMapIndex];
+                tileMap->tileGrid[y * world->tileGridWidth + x] = nullptr;
                 return e;
             }
         }
@@ -191,7 +199,7 @@ bool SceneIsTileOccupied(const scene_context_t* world, int x, int y)
         return true;
     }
 
-    return SceneGetTileWithIndex(world, x, y);
+    return SceneGetTileWithIndex(world, world->tileMapIndex, x, y);
 }
 
 bool SceneIsTileOccupied(const scene_context_t* world, const sf::Vector2i& pos)
@@ -260,6 +268,17 @@ bool SceneIsEntityHitObj(const scene_context_t* world, const sf::Vector2f& point
     return SceneIsEntityHitObj(world, point.x, point.y, out);
 }
 
+void SceneSetTileIndex(scene_context_t* world, int index)
+{
+    if (index < 0 || index >= world->tileMapCount) {
+        printf("[ERROR][SceneManager]: invalid tilemap index %d.\n", index);
+        return;
+    }
+
+    world->tileMapIndex = index;
+
+}
+
 void DrawWorld(const render_context_t* renderContext, const scene_context_t* world)
 {
     assert(renderContext);
@@ -269,20 +288,39 @@ void DrawWorld(const render_context_t* renderContext, const scene_context_t* wor
     const sf::Vector2f viewSize = rWindow->getView().getSize();
     const float width = viewSize.x / 2;
     const float height = viewSize.y / 2;
-    const int size = world->tileSize;
 
-    int fromX = (drawCenter.x - width) / size - 2;
-    int toX = (drawCenter.x + width) / size + 2;
-    int fromY = (drawCenter.y - height) / size - 2;
-    int toY = (drawCenter.y + height) / size + 2;
+    int fromX = (drawCenter.x - width) / world->tileSize - 2;
+    int toX = (drawCenter.x + width) / world->tileSize + 2;
+    int fromY = (drawCenter.y - height) / world->tileSize - 2;
+    int toY = (drawCenter.y + height) / world->tileSize + 2;
+
     fromX = std::clamp(fromX, 0, (int) world->tileGridWidth - 1);
-    toX = std::clamp(toX, 0, (int) world->tileGridHeight - 1);
+    toX = std::clamp(toX, 0, (int) world->tileGridWidth - 1);
     fromY = std::clamp(fromY, 0, (int) world->tileGridHeight - 1);
     toY = std::clamp(toY, 0, (int) world->tileGridHeight - 1);
 
+    for (int i = 0; i < world->tileMapCount - 1; ++i) {
+        for (int x = fromX; x < toX; ++x) {
+            for (int y = fromY; y < toY; ++y) {
+                entity_t* tile = SceneGetTileWithIndex(world, i, x, y);
+                if (!tile)
+                    continue;
+
+                DrawEntity(tile);
+                if (renderContext->settings.isDrawTileCollider) {
+                    DrawTileInfo(tile);
+                }
+            }
+        }
+    }
+
+    for (auto& entity: world->objects) {
+        DrawEntity(entity);
+    }
+
     for (int x = fromX; x < toX; ++x) {
         for (int y = fromY; y < toY; ++y) {
-            entity_t* tile = SceneGetTileWithIndex(world, x, y);
+            entity_t* tile = SceneGetTileWithIndex(world, world->tileMapCount - 1, x, y);
             if (!tile)
                 continue;
 
@@ -291,9 +329,5 @@ void DrawWorld(const render_context_t* renderContext, const scene_context_t* wor
                 DrawTileInfo(tile);
             }
         }
-    }
-
-    for (auto& entity: world->objects) {
-        DrawEntity(entity);
     }
 }

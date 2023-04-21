@@ -1,4 +1,3 @@
-#include "imgui.h"
 #include "SFML/Graphics.hpp"
 
 #include "claw_editor.h"
@@ -38,11 +37,20 @@ void ClawEditMain()
     render_context_t renderContext = {};
     editor_context_t editorContext = {};
     scene_context_t world;
-    world.tileGridWidth = MAX_GRID_SIZE;
-    world.tileGridHeight = MAX_GRID_SIZE;
+    world.tileGridWidth = MAX_GRID_WIDTH;
+    world.tileGridHeight = MAX_GRID_HEIGHT;
     world.tileSize = 64;
-    entity_t* tileGrid[MAX_GRID_SIZE][MAX_GRID_SIZE] = {};
-    world.tileGrid = (entity_t**) tileGrid;
+    world.tileMapCount = 3;
+    entity_t* tileGrid00[MAX_GRID_WIDTH][MAX_GRID_HEIGHT] = {};
+    entity_t* tileGrid01[MAX_GRID_WIDTH][MAX_GRID_HEIGHT] = {};
+    entity_t* tileGrid02[MAX_GRID_WIDTH][MAX_GRID_HEIGHT] = {};
+    tilemap_t tileMaps[3] = {
+        {(entity_t**) tileGrid00},
+        {(entity_t**) tileGrid01},
+        {(entity_t**) tileGrid02}
+    };
+    world.tileMaps = tileMaps;
+    world.tileMapIndex = 0;
 
     SceneAllocAssets(&world);
     RendererInit(&renderContext, initWindowWidth, initWindowHeight);

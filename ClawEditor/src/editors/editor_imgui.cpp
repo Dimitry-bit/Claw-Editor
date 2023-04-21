@@ -109,7 +109,7 @@ void EditorUpdateImGuiEditors(editor_context_t* editorContext, render_context_t*
     }
 
     DrawMainMenuBar(editorContext, *renderContext, world);
-    DrawStatusBar(editorContext);
+    DrawStatusBar(world, editorContext);
     EditorUpdateWindows(editorContext, world);
 
     ImGui::SFML::Render(*rWindow);
@@ -200,7 +200,7 @@ void DrawMainMenuBar(editor_context_t* editorContext, render_context_t& renderCo
     ImGui::EndMainMenuBar();
 }
 
-void DrawStatusBar(editor_context_t* editorContext)
+void DrawStatusBar(scene_context_t* world, editor_context_t* editorContext)
 {
     ImGuiWindowFlags window_flags;
     window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
@@ -221,6 +221,14 @@ void DrawStatusBar(editor_context_t* editorContext)
         if (ImGui::Selectable(ICON_MD_VIEW_IN_AR"Object", editorContext->mode == EDITOR_MODE_OBJ, 0, textSize)) {
             editorContext->mode = EDITOR_MODE_OBJ;
         }
+
+        if (editorContext->mode == EDITOR_MODE_TILE) {
+            int tileMapIndex = world->tileMapIndex;
+            if (ImGui::Combo("", &tileMapIndex, "BACK(0)\0ACTION(1)\0FRONT(2)\0")) {
+                SceneSetTileIndex(world, tileMapIndex);
+            }
+        }
+
         ImGui::EndMenuBar();
     }
 
