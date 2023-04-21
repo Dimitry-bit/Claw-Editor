@@ -92,6 +92,10 @@ static void UpdateAndRenderWindow(render_context_t* renderContext,
 {
     HandleEvent(renderContext, editorContext);
 
+    if (!rWindow->hasFocus()) {
+        return;
+    }
+
     rWindow->clear();
 
     rWindow->setView(renderContext->worldView);
