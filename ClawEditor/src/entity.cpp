@@ -8,7 +8,6 @@ static void EntityInitRender(entity_t* self, const render_types_t& rType, const 
 
 entity_t* EntityAlloc()
 {
-    printf("[Info][Entity]: Entity Created.\n");
     entity_t* entity = new entity_t;
     return entity;
 }

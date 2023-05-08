@@ -137,7 +137,6 @@ bool SceneAddTile(scene_context_t* world, entity_t* entity, int x, int y)
 
     tilemap_t* tileMap = &world->tileMaps[world->tileMapIndex];
     tileMap->tileGrid[y * world->tileGridWidth + x] = entity;
-    printf("[INFO][SceneManager]: Tile Placed.\n");
     return true;
 }
 
@@ -151,7 +150,6 @@ void SceneAddObject(scene_context_t* world, entity_t* entity)
     assert(entity);
 
     world->objects.push_back(entity);
-    printf("[INFO][SceneManager]: Object Placed.\n");
 }
 
 entity_t* SceneRemoveEntity(scene_context_t* world, const entity_t* entity)
